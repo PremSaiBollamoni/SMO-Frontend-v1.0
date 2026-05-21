@@ -23,12 +23,14 @@ class QrScanDialog extends StatefulWidget {
 
 class _QrScanDialogState extends State<QrScanDialog> {
   final TextEditingController qrController = TextEditingController();
+  final TextEditingController employeeSearchController = TextEditingController();
   EmployeeModel? selectedEmployee;
   bool isCheckingQr = false;
   bool needsEmployeeSelection = false;
   bool useCameraScanner = true;
   late MobileScannerController mobileScannerController;
   List<EmployeeModel> employees = [];
+  List<EmployeeModel> filteredEmployees = [];
   bool isLoadingEmployees = false;
   
   @override
@@ -36,11 +38,27 @@ class _QrScanDialogState extends State<QrScanDialog> {
     super.initState();
     mobileScannerController = MobileScannerController();
     employees = widget.employees;
+    filteredEmployees = employees;
+    employeeSearchController.addListener(_filterEmployees);
     
     // If no employees provided, fetch from API
     if (employees.isEmpty) {
       _fetchEmployees();
     }
+  }
+  
+  void _filterEmployees() {
+    final query = employeeSearchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        filteredEmployees = employees;
+      } else {
+        filteredEmployees = employees.where((emp) {
+          return emp.empName.toLowerCase().contains(query) ||
+              emp.empId.toLowerCase().contains(query);
+        }).toList();
+      }
+    });
   }
   
   Future<void> _fetchEmployees() async {
@@ -61,6 +79,7 @@ class _QrScanDialogState extends State<QrScanDialog> {
         
         setState(() {
           employees = list;
+          filteredEmployees = list;
           debugPrint('[QR] Loaded ${employees.length} employees');
         });
       }
@@ -77,6 +96,7 @@ class _QrScanDialogState extends State<QrScanDialog> {
   @override
   void dispose() {
     qrController.dispose();
+    employeeSearchController.dispose();
     mobileScannerController.dispose();
     super.dispose();
   }
@@ -110,6 +130,9 @@ class _QrScanDialogState extends State<QrScanDialog> {
         }
       } else {
         // CHECK_IN - need employee selection
+        // Refresh active mappings before showing employee selector
+        await widget.controller.loadActiveMappings();
+        
         setState(() {
           needsEmployeeSelection = true;
           isCheckingQr = false;
@@ -279,32 +302,65 @@ class _QrScanDialogState extends State<QrScanDialog> {
       return const Center(child: CircularProgressIndicator());
     }
     
-    if (employees.isEmpty) {
-      return const Text('No employees available');
+    debugPrint('[QR_SELECTOR] Total employees: ${employees.length}');
+    debugPrint('[QR_SELECTOR] Active mappings: ${widget.controller.activeMappings.length}');
+    
+    // Filter out employees who are already checked in (status = 'ACTIVE')
+    final availableEmployees = filteredEmployees.where((emp) {
+      // Check if this employee has an active check-in (status = 'ACTIVE')
+      final hasActiveCheckIn = widget.controller.activeMappings.any(
+        (mapping) {
+          final match = mapping.employeeId == int.parse(emp.empId) && mapping.status == 'ACTIVE';
+          if (match) {
+            debugPrint('[QR_SELECTOR] Filtering out ${emp.empName} (${emp.empId}) - status: ${mapping.status}');
+          }
+          return match;
+        },
+      );
+      return !hasActiveCheckIn;
+    }).toList();
+    
+    debugPrint('[QR_SELECTOR] Available employees after filter: ${availableEmployees.length}');
+    
+    if (availableEmployees.isEmpty) {
+      return const Text('No employees available (all checked in)');
     }
     
-    return DropdownButtonFormField<EmployeeModel>(
-      value: selectedEmployee,
-      decoration: AppTheme.inputDecoration('Select Employee'),
-      isExpanded: true,
-      items: employees.map((emp) {
-        return DropdownMenuItem(
-          value: emp,
-          child: SizedBox(
-            width: 300,
-            child: Text(
-              '${emp.empId} - ${emp.empName}',
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-          ),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          selectedEmployee = value;
-        });
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Search field
+        TextField(
+          controller: employeeSearchController,
+          decoration: AppTheme.inputDecoration('Search employee by name or ID'),
+          onChanged: (_) => _filterEmployees(),
+        ),
+        const SizedBox(height: 8),
+        // Dropdown
+        DropdownButtonFormField<EmployeeModel>(
+          value: selectedEmployee,
+          decoration: AppTheme.inputDecoration('Select Employee'),
+          isExpanded: true,
+          items: availableEmployees.map((emp) {
+            return DropdownMenuItem(
+              value: emp,
+              child: SizedBox(
+                width: 300,
+                child: Text(
+                  '${emp.empId} - ${emp.empName}',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              selectedEmployee = value;
+            });
+          },
+        ),
+      ],
     );
   }
 }
