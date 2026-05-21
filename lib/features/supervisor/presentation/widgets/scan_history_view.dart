@@ -48,7 +48,7 @@ class ScanHistoryView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (scan.employeeId != null)
-                  Text('Employee ID: ${scan.employeeId}'),
+                  Text('Employee: ${scan.employeeId}${scan.employeeName != null ? ' - ${scan.employeeName}' : ''}'),
                 Text('Scanned by: ${scan.scannedBy}'),
                 Text(
                   DateFormat('MMM dd, yyyy HH:mm:ss').format(scan.scanTime),
