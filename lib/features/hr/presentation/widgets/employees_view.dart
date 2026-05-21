@@ -214,54 +214,117 @@ class EmployeesView extends StatelessWidget {
         children: [
           // Search and filter bar with refresh button
           Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    onChanged: (value) =>
-                        controller.employeeSearchQuery.value = value,
-                    decoration: AppTheme.inputDecoration('Search employees...'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                DropdownButton<String>(
-                  value: controller.employeeRoleFilter.value,
-                  items: [
-                    const DropdownMenuItem(value: 'ALL', child: Text('ALL')),
-                    ...roles.map(
-                      (r) => DropdownMenuItem(
-                        value: r.roleName,
-                        child: Text(
-                          r.roleName,
-                          overflow: TextOverflow.ellipsis,
+            padding: const EdgeInsets.all(12),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < 600;
+                
+                if (isMobile) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextField(
+                        onChanged: (value) =>
+                            controller.employeeSearchQuery.value = value,
+                        decoration: AppTheme.inputDecoration('Search employees...'),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButton<String>(
+                              value: controller.employeeRoleFilter.value,
+                              isExpanded: true,
+                              items: [
+                                const DropdownMenuItem(value: 'ALL', child: Text('ALL')),
+                                ...roles.map(
+                                  (r) => DropdownMenuItem(
+                                    value: r.roleName,
+                                    child: Text(
+                                      r.roleName,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) {
+                                  controller.employeeRoleFilter.value = value;
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.refresh),
+                            onPressed: () => controller.fetchEmployees(),
+                            tooltip: 'Refresh',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () => _exportEmployees(context, controller),
+                        icon: const Icon(Icons.download, size: 16),
+                        label: const Text('Export'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
                         ),
                       ),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      controller.employeeRoleFilter.value = value;
-                    }
-                  },
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () => controller.fetchEmployees(),
-                  tooltip: 'Refresh employee list',
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () => _exportEmployees(context, controller),
-                  icon: const Icon(Icons.download),
-                  label: const Text('Export'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
+                    ],
+                  );
+                } else {
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          onChanged: (value) =>
+                              controller.employeeSearchQuery.value = value,
+                          decoration: AppTheme.inputDecoration('Search employees...'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      DropdownButton<String>(
+                        value: controller.employeeRoleFilter.value,
+                        items: [
+                          const DropdownMenuItem(value: 'ALL', child: Text('ALL')),
+                          ...roles.map(
+                            (r) => DropdownMenuItem(
+                              value: r.roleName,
+                              child: Text(
+                                r.roleName,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            controller.employeeRoleFilter.value = value;
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: () => controller.fetchEmployees(),
+                        tooltip: 'Refresh employee list',
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: () => _exportEmployees(context, controller),
+                        icon: const Icon(Icons.download),
+                        label: const Text('Export'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              },
             ),
           ),
           // Bulk delete bar
