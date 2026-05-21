@@ -1,0 +1,130 @@
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/android/app/debug
+/android/app/profile
+/android/app/release
+/ios/Flutter/Flutter.podspec
+/ios/Flutter/Flutter.framework
+/ios/Flutter/Flutter.xcframework
+/ios/Flutter/flutter_export_environment.sh
+/ios/ServiceDefinitions.json
+/ios/Runner/GeneratedPluginRegistrant.*
+/ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+/windows/flutter/generated_plugins.cmake
+/windows/flutter/generated_plugin_symlink_dir/
+/macos/Flutter/GeneratedPluginRegistrant.swift
+/macos/Flutter/Flutter-Debug.xcconfig
+/macos/Flutter/Flutter-Release.xcconfig
+/macos/Flutter/Flutter-Profile.xcconfig
+
+# Exceptions to above rules
+!/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+
+# Web
+lib/generated_plugin_registrant.dart
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# iOS/macOS
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/*sync/
+**/ios/**/.sconsign.dblite
+**/ios/**/.tags*
+**/ios/**/.vagrant/
+**/ios/**/DerivedData/
+**/ios/**/Icon?
+**/ios/**/Icon??
+**/ios/**/Icon???
+**/ios/**/Icon????
+**/ios/**/Icon?????
+**/ios/**/Icon??????????
+**/ios/**/xcuserdata
+**/ios/**/Flutter/Flutter.framework
+**/ios/**/Flutter/Flutter.podspec
+**/ios/**/Flutter/Flutter.xcframework
+**/ios/**/Flutter/flutter_export_environment.sh
+**/ios/**/Flutter/Flutter-Debug.xcconfig
+**/ios/**/Flutter/Flutter-Release.xcconfig
+**/ios/**/Flutter/Flutter-Profile.xcconfig
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may want to be tracked by git if you want to share
+# your launch configurations with team members, press Ctrl+Shift+D (Windows) / Cmd+Shift+D (Mac) to see all your launch configurations
+# and uncomment those you want to include in version control
+# .vscode/
+
+# Flutter repo-specific
+/bin/cache/
+/bin/mingit/
+/dev/benchmarks/complex_layout/build/
+/dev/benchmarks/flutter_test_performance/build/
+/dev/benchmarks/microbenchmarks/build/
+/dev/devicelab/build/
+/dev/integration_tests/android_views/android_app/gradle-wrapper.jar
+/dev/integration_tests/android_views/android_app/gradlew
+/dev/integration_tests/android_views/android_app/gradlew.bat
+/dev/integration_tests/android_views/android_app/.gradle
+/dev/integration_tests/android_views/android_app/local.properties
+/dev/integration_tests/android_views/android_app/.idea
+/dev/integration_tests/android_views/android_app/.project
+/dev/integration_tests/android_views/android_app/local.properties
+/dev/integration_tests/android_views/android_app/.classpath
+/dev/integration_tests/android_views/android_app/.c9/
+/dev/integration_tests/android_views/android_app/*.launch
+/dev/integration_tests/android_views/android_app/*.sublime-workspace
+/dev/integration_tests/android_views/android_app/.vscode/
+/dev/integration_tests/android_views/android_app/.DS_Store
+/dev/integration_tests/android_views/android_app/local.properties
+/dev/integration_tests/android_views/android_app/*.jks
+/dev/integration_tests/android_views/android_app/*.keystore
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Sensitive files
+*.pem
+*.key
+*.keystore
+*.jks
+
+# Backend folder (separate repo)
+/backend/
