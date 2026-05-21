@@ -45,7 +45,7 @@ class AllMappingsView extends StatelessWidget {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Employee ID: ${mapping.employeeId}'),
+                Text('Employee: ${mapping.employeeId}${mapping.employeeName != null ? ' - ${mapping.employeeName}' : ''}'),
                 Text('Check-in: ${DateFormat('MMM dd, HH:mm').format(mapping.startTime)}'),
                 if (mapping.endTime != null)
                   Text('Check-out: ${DateFormat('MMM dd, HH:mm').format(mapping.endTime!)}'),
