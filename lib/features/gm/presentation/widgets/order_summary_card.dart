@@ -20,6 +20,7 @@ class OrderSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final isMobile = MediaQuery.of(context).size.width < 600;
     
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -27,13 +28,14 @@ class OrderSummaryCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Column(
@@ -42,68 +44,102 @@ class OrderSummaryCard extends StatelessWidget {
                         Text(
                           order.orderNumber,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           order.productName ?? 'Product #${order.productId}',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             color: dark ? Colors.grey[400] : Colors.grey[600],
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
                   _buildStatusChip(order.status, dark),
                 ],
               ),
               
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               const Divider(height: 1),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               
-              // Order details
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoItem(
+              // Order details - wrap on mobile
+              if (isMobile)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoItem(
                       icon: Icons.inventory_2_outlined,
                       label: 'Order Qty',
                       value: '${order.orderQty}',
                       dark: dark,
                     ),
-                  ),
-                  if (order.completed != null)
-                    Expanded(
-                      child: _buildInfoItem(
+                    const SizedBox(height: 8),
+                    if (order.completed != null)
+                      _buildInfoItem(
                         icon: Icons.check_circle_outline,
                         label: 'Completed',
                         value: '${order.completed}',
                         dark: dark,
                       ),
-                    ),
-                  if (order.pending != null)
-                    Expanded(
-                      child: _buildInfoItem(
+                    if (order.completed != null) const SizedBox(height: 8),
+                    if (order.pending != null)
+                      _buildInfoItem(
                         icon: Icons.pending_outlined,
                         label: 'Pending',
                         value: '${order.pending}',
                         dark: dark,
                       ),
+                  ],
+                )
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoItem(
+                        icon: Icons.inventory_2_outlined,
+                        label: 'Order Qty',
+                        value: '${order.orderQty}',
+                        dark: dark,
+                      ),
                     ),
-                ],
-              ),
+                    if (order.completed != null)
+                      Expanded(
+                        child: _buildInfoItem(
+                          icon: Icons.check_circle_outline,
+                          label: 'Completed',
+                          value: '${order.completed}',
+                          dark: dark,
+                        ),
+                      ),
+                    if (order.pending != null)
+                      Expanded(
+                        child: _buildInfoItem(
+                          icon: Icons.pending_outlined,
+                          label: 'Pending',
+                          value: '${order.pending}',
+                          dark: dark,
+                        ),
+                      ),
+                  ],
+                ),
               
               if (order.progressPercent != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 _buildProgressBar(order.progressPercent!, dark),
               ],
               
               if (order.customerName != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Icon(
@@ -112,11 +148,15 @@ class OrderSummaryCard extends StatelessWidget {
                       color: dark ? Colors.grey[400] : Colors.grey[600],
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      order.customerName!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: dark ? Colors.grey[400] : Colors.grey[600],
+                    Expanded(
+                      child: Text(
+                        order.customerName!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: dark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -133,43 +173,71 @@ class OrderSummaryCard extends StatelessWidget {
                       color: dark ? Colors.grey[400] : Colors.grey[600],
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      'Expected: ${order.expectedCompletionDate}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: dark ? Colors.grey[400] : Colors.grey[600],
+                    Expanded(
+                      child: Text(
+                        'Expected: ${order.expectedCompletionDate}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: dark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
               ],
               
-              // Action buttons
+              // Action buttons - stack on mobile
               if (onActivate != null || onViewDetails != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (onViewDetails != null)
-                      TextButton.icon(
-                        onPressed: onViewDetails,
-                        icon: const Icon(Icons.visibility_outlined, size: 18),
-                        label: const Text('View Details'),
-                      ),
-                    if (onActivate != null && order.status == 'DRAFT') ...[
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        onPressed: onActivate,
-                        icon: const Icon(Icons.play_arrow, size: 18),
-                        label: const Text('Activate'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primary,
-                          foregroundColor: Colors.white,
+                const SizedBox(height: 10),
+                if (isMobile)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (onViewDetails != null)
+                        TextButton.icon(
+                          onPressed: onViewDetails,
+                          icon: const Icon(Icons.visibility_outlined, size: 16),
+                          label: const Text('View Details', style: TextStyle(fontSize: 12)),
                         ),
-                      ),
+                      if (onActivate != null && order.status == 'DRAFT')
+                        ElevatedButton.icon(
+                          onPressed: onActivate,
+                          icon: const Icon(Icons.play_arrow, size: 16),
+                          label: const Text('Activate', style: TextStyle(fontSize: 12)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
                     ],
-                  ],
-                ),
+                  )
+                else
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (onViewDetails != null)
+                        TextButton.icon(
+                          onPressed: onViewDetails,
+                          icon: const Icon(Icons.visibility_outlined, size: 18),
+                          label: const Text('View Details'),
+                        ),
+                      if (onActivate != null && order.status == 'DRAFT') ...[
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: onActivate,
+                          icon: const Icon(Icons.play_arrow, size: 18),
+                          label: const Text('Activate'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primary,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
               ],
             ],
           ),
