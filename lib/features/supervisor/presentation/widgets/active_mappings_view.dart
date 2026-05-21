@@ -39,7 +39,7 @@ class ActiveMappingsView extends StatelessWidget {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Employee ID: ${mapping.employeeId}'),
+                Text('Employee: ${mapping.employeeId}${mapping.employeeName != null ? ' - ${mapping.employeeName}' : ''}'),
                 Text('Check-in: ${DateFormat('MMM dd, HH:mm').format(mapping.startTime)}'),
                 Text(
                   'Duration: ${duration.inHours}h ${duration.inMinutes % 60}m',
