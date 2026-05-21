@@ -2,6 +2,7 @@ class QrScanHistory {
   final int id;
   final String qrId;
   final int? employeeId;
+  final String? employeeName;
   final String scanType;
   final DateTime scanTime;
   final String scannedBy;
@@ -11,6 +12,7 @@ class QrScanHistory {
     required this.id,
     required this.qrId,
     this.employeeId,
+    this.employeeName,
     required this.scanType,
     required this.scanTime,
     required this.scannedBy,
@@ -22,6 +24,7 @@ class QrScanHistory {
       id: json['id'] as int,
       qrId: json['qrId'] as String,
       employeeId: json['employeeId'] as int?,
+      employeeName: json['employeeName'] as String?,
       scanType: json['scanType'] as String,
       scanTime: DateTime.parse(json['scanTime'] as String),
       scannedBy: json['scannedBy'] as String,
