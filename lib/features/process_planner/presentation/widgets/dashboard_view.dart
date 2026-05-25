@@ -708,6 +708,8 @@ class _DashboardViewState extends State<DashboardView> {
       final List<Map<String, dynamic>> steps = [];
       // edges: list of {from_name, to_name, edge_type}
       final List<Map<String, dynamic>> edges = [];
+      // Track operation names to avoid duplicates
+      final Set<String> addedOperationNames = {};
 
       int stepSeq = 1;
       for (int i = 0; i < _tableRows.length; i++) {
@@ -720,6 +722,11 @@ class _DashboardViewState extends State<DashboardView> {
             : '';
 
         if (name.isEmpty) continue;
+
+        // Skip if this operation name has already been added
+        if (addedOperationNames.contains(name)) {
+          continue;
+        }
 
         const int standardTime = 5;
 
@@ -762,6 +769,7 @@ class _DashboardViewState extends State<DashboardView> {
           'stage_group': stageGroup,
           'standard_time': standardTime,
         });
+        addedOperationNames.add(name);
 
         // Build edges from Next WS column
         final String nextWSRaw = nextWSCol < row.length
