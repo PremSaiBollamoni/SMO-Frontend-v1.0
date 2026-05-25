@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../data/api/qr_assignment_api_service.dart';
 import '../../domain/models/qr_assignment_model.dart';
 
@@ -173,8 +172,12 @@ class QrAssignmentController extends GetxController {
     return true;
   }
 
-  // Submit form
-  Future<void> submitForm() async {
+  // Submit form with next operation passed from widget
+  Future<void> submitForm({
+    String? nextOperationName,
+    int? nextOperationId,
+    int? operationId, // Current operation user clicked on (starting op)
+  }) async {
     if (!validateForm()) return;
 
     try {
@@ -188,42 +191,72 @@ class QrAssignmentController extends GetxController {
         gtgNumber: selectedGtg.value?.trim() ?? '',
         btnNumber: selectedBtn.value?.trim() ?? '',
         label: selectedLabel.value?.trim() ?? '',
-        nextOperation: selectedNextOperation.value?.trim() ?? '',
+        nextOperation: nextOperationName?.trim() ?? '',
         trayQuantity: trayQuantity.value,
         supervisorId: 1004,
         notes: notesController.text.trim().isEmpty
             ? null
             : notesController.text.trim(),
         orderNumber: selectedOrderNumber.value, // Include order number
+        operationId: operationId, // Pass starting operation ID
       );
 
+      print('[QR_ASSIGNMENT] ═══ QR ASSIGNMENT SUBMISSION START ═══');
+      print('[QR_ASSIGNMENT] Process Plan: ${assignment.processPlanNumber}');
+      print('[QR_ASSIGNMENT] QR Code: ${assignment.qrCode}');
+      print('[QR_ASSIGNMENT] Style: ${assignment.style}');
+      print('[QR_ASSIGNMENT] Size: ${assignment.size}');
+      print('[QR_ASSIGNMENT] GTG: ${assignment.gtgNumber}');
+      print('[QR_ASSIGNMENT] Operation ID (starting): ${assignment.operationId}');
+      print('[QR_ASSIGNMENT] Next Operation: ${assignment.nextOperation}');
+      print('[QR_ASSIGNMENT] Tray Quantity: ${assignment.trayQuantity}');
+      print('[QR_ASSIGNMENT] Order Number: ${assignment.orderNumber}');
       print('[QR_ASSIGNMENT] Submitting assignment...');
+      
       final response = await _apiService.submitQrAssignment(assignment);
       print('[QR_ASSIGNMENT] Response received: $response');
 
       if (response['success'] == true) {
-        print('[QR_ASSIGNMENT] Assignment successful!');
+        print('[QR_ASSIGNMENT] ✓ ASSIGNMENT SUCCESSFUL');
+        print('[QR_ASSIGNMENT] Bin ID: ${response['binId']}');
+        print('[QR_ASSIGNMENT] Current Operation ID: ${response['currentOperationId']}');
+        print('[QR_ASSIGNMENT] First Operation ID: ${response['firstOperationId']}');
+        print('[QR_ASSIGNMENT] Routing ID: ${response['routingId']}');
+        
         String message =
             'QR Assignment Successful!\n\nBin ID: ${response['binId']}\nFirst Operation ID: ${response['currentOperationId']}';
         if (selectedOrderNumber.value != null) {
           message += '\nLinked to Order: ${selectedOrderNumber.value}';
         }
+        
+        // Show next operation info if available
+        if (nextOperationName != null) {
+          message += '\n\nNext Operation: $nextOperationName';
+        }
+
+        print('[QR_ASSIGNMENT] ═══ QR ASSIGNMENT SUBMISSION END (SUCCESS) ═══');
 
         // Reset form first
         resetForm();
         
-        // Show success toast
-        Fluttertoast.showToast(
-          msg: message,
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 4,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
+        // Show success snackbar - use Future.delayed to ensure context is ready
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (Get.isSnackbarOpen == false) {
+            Get.snackbar(
+              'Success',
+              message,
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.green,
+              colorText: Colors.white,
+              duration: const Duration(seconds: 4),
+            );
+          }
+        });
       } else {
-        print('[QR_ASSIGNMENT] Assignment failed: ${response['message']}');
+        print('[QR_ASSIGNMENT] ✗ ASSIGNMENT FAILED: ${response['message']}');
+        print('[QR_ASSIGNMENT] Error Type: ${response['errorType']}');
+        print('[QR_ASSIGNMENT] ═══ QR ASSIGNMENT SUBMISSION END (ERROR) ═══');
+        
         String message = response['message'] ?? 'Assignment failed';
         
         Color backgroundColor = Colors.red;
@@ -239,28 +272,35 @@ class QrAssignmentController extends GetxController {
             break;
         }
 
-        // Show error toast
-        Fluttertoast.showToast(
-          msg: message,
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 5,
-          backgroundColor: backgroundColor,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
+        // Show error snackbar - use Future.delayed to ensure context is ready
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (Get.isSnackbarOpen == false) {
+            Get.snackbar(
+              'Error',
+              message,
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: backgroundColor,
+              colorText: Colors.white,
+              duration: const Duration(seconds: 5),
+            );
+          }
+        });
       }
     } catch (e) {
-      print('[QR_ASSIGNMENT] Exception: $e');
-      Fluttertoast.showToast(
-        msg: 'Failed to submit QR assignment:\n$e',
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 4,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
+      print('[QR_ASSIGNMENT] ✗ EXCEPTION: $e');
+      print('[QR_ASSIGNMENT] ═══ QR ASSIGNMENT SUBMISSION END (ERROR) ═══');
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (Get.isSnackbarOpen == false) {
+          Get.snackbar(
+            'Error',
+            'Failed to submit QR assignment:\n$e',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 4),
+          );
+        }
+      });
     } finally {
       isSubmitting.value = false;
     }
