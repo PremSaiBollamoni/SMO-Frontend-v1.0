@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../data/api/merging_api_service.dart';
 import '../../domain/models/merging_model.dart';
 
@@ -126,9 +125,25 @@ class MergingController extends GetxController {
             : notesController.text.trim(),
       );
 
+      print('[MERGING_SUBMIT] ═══ MERGING SUBMISSION START ═══');
+      print('[MERGING_SUBMIT] Tub 1 QR: ${merging.tub1Qr}');
+      print('[MERGING_SUBMIT] Tub 1 Description: ${merging.tub1Description}');
+      print('[MERGING_SUBMIT] Tub 2 QR: ${merging.tub2Qr}');
+      print('[MERGING_SUBMIT] Tub 2 Description: ${merging.tub2Description}');
+      print('[MERGING_SUBMIT] Supervisor ID: ${merging.supervisorId}');
+      print('[MERGING_SUBMIT] Notes: ${merging.notes}');
+
       final response = await _apiService.submitMerging(merging);
 
+      print('[MERGING_SUBMIT] Response received: $response');
+
       if (response['success'] == true) {
+        print('[MERGING_SUBMIT] ✓ MERGE SUCCESSFUL');
+        print('[MERGING_SUBMIT] Consolidated Bin: ${response['consolidatedBinId']}');
+        print('[MERGING_SUBMIT] Freed Bin: ${response['freedBinId']}');
+        print('[MERGING_SUBMIT] Total Quantity: ${response['totalQuantity']}');
+        print('[MERGING_SUBMIT] Qty Transferred: ${response['qtyTransferred']}');
+
         // Enhanced success message with details
         String message = 'Tubs Merged Successfully!';
         if (response['totalQuantity'] != null) {
@@ -140,19 +155,28 @@ class MergingController extends GetxController {
         if (response['freedBinId'] != null) {
           message += '\n\nSource bin freed for reuse';
         }
+        
+        // Show consolidation info
+        if (response['consolidatedBinId'] != null) {
+          message += '\nConsolidated Bin: ${response['consolidatedBinId']}';
+        }
 
-        Fluttertoast.showToast(
-          msg: message,
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 4,
+        print('[MERGING_SUBMIT] ═══ MERGING SUBMISSION END (SUCCESS) ═══');
+
+        Get.snackbar(
+          'Success',
+          message,
+          snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 16.0,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
         );
         
         resetForm();
       } else {
+        print('[MERGING_SUBMIT] ✗ MERGE FAILED: ${response['message']}');
+        print('[MERGING_SUBMIT] Error Type: ${response['errorType']}');
+
         // Enhanced error handling based on error type
         String errorType = response['errorType'] ?? 'UNKNOWN_ERROR';
         String message = response['message'] ?? 'Merging failed';
@@ -181,25 +205,27 @@ class MergingController extends GetxController {
             break;
         }
 
-        Fluttertoast.showToast(
-          msg: 'Merge Failed\n\n$message',
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 5,
+        print('[MERGING_SUBMIT] ═══ MERGING SUBMISSION END (ERROR) ═══');
+
+        Get.snackbar(
+          'Error',
+          'Merge Failed\n\n$message',
+          snackPosition: SnackPosition.BOTTOM,
           backgroundColor: backgroundColor,
-          textColor: Colors.white,
-          fontSize: 16.0,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 5),
         );
       }
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: 'Failed to merge tubs:\n$e',
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 4,
+      print('[MERGING_SUBMIT] ✗ EXCEPTION: $e');
+      print('[MERGING_SUBMIT] ═══ MERGING SUBMISSION END (ERROR) ═══');
+      Get.snackbar(
+        'Error',
+        'Failed to merge tubs:\n$e',
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
       );
     } finally {
       isSubmitting.value = false;
