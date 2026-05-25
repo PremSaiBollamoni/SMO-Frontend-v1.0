@@ -28,8 +28,18 @@ class WorkflowGraphBuilder {
       return [];
     }
 
-    debugPrint('[WorkflowGraphBuilder] Building graph for routing $routingId');
+    debugPrint('[WorkflowGraphBuilder] ═══ BUILDING GRAPH FOR ROUTING $routingId ═══');
     debugPrint('[WorkflowGraphBuilder] Operations: ${operations.length}, Explicit edges: ${edges.length}');
+    
+    // Log all operations
+    for (final op in operations) {
+      debugPrint('[WorkflowGraphBuilder] OP: ${op['name']} (id=${op['operation_id']}, seq=${op['sequence']}, type=${op['operation_type']})');
+    }
+    
+    // Log all edges
+    for (final edge in edges) {
+      debugPrint('[WorkflowGraphBuilder] EDGE: ${edge['from_name']} → ${edge['to_name']} (type=${edge['edge_type']})');
+    }
 
     // Convert operations to indexed list sorted by sequence
     final ops = operations.map((op) {
