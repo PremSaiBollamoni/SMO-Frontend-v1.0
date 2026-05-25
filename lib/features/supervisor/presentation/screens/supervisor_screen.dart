@@ -10,9 +10,6 @@ import '../widgets/dashboard_view.dart';
 import '../widgets/operator_performance_view.dart';
 import '../widgets/reassign_work_view.dart';
 import '../widgets/workflow_monitoring_view.dart';
-import 'qr_assignment_screen.dart';
-import 'tracking_screen.dart';
-import 'merging_screen.dart';
 import 'temp_qr_management_screen.dart';
 import '../../../../features/process_planner/presentation/widgets/approved_process_plans_view.dart';
 
@@ -63,15 +60,9 @@ class _SupervisorScreenState extends State<SupervisorScreen> {
     final acts = widget.activities;
     final tabs = <_TabItem>[];
 
-    if (acts.contains('SUPERVISOR_QR_ASSIGNMENT')) {
-      tabs.add(_TabItem(Icons.qr_code_2_outlined, 'QR Assigning', const QrAssignmentScreen()));
-    }
-    if (acts.contains('SUPERVISOR_TRACKING')) {
-      tabs.add(_TabItem(Icons.track_changes_outlined, 'Tracking', const TrackingScreen()));
-    }
-    if (acts.contains('SUPERVISOR_MERGING')) {
-      tabs.add(_TabItem(Icons.merge_type_outlined, 'Merging', const MergingScreen()));
-    }
+    // QR Assignment, Tracking, and Merging are now accessed through Process Plans graph
+    // They are no longer shown as separate tabs in the sidebar
+
     if (acts.contains('MANAGE_TEMP_QR_CODES')) {
       tabs.add(_TabItem(Icons.qr_code_scanner, 'Temp QR Codes', TempQrManagementScreen(empId: widget.empId)));
     }
