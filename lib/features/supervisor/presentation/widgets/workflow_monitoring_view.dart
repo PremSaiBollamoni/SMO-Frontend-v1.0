@@ -131,6 +131,10 @@ class _WorkflowMonitoringViewState extends State<WorkflowMonitoringView> {
   }
 
   List<WorkflowNode> _buildNodes(ProcessPlanViewModel plan) {
+    print('[SUPERVISOR_WORKFLOW] ═══ BUILDING NODES FOR ROUTING ${plan.routingId} ═══');
+    print('[SUPERVISOR_WORKFLOW] Operations: ${plan.operations.length}');
+    print('[SUPERVISOR_WORKFLOW] Edges: ${plan.edges?.length ?? 0}');
+    
     // Use shared builder for single source of truth
     // Convert ProcessPlanViewModel operations to map format
     final operationMaps = plan.operations.map((op) {
@@ -155,6 +159,7 @@ class _WorkflowMonitoringViewState extends State<WorkflowMonitoringView> {
       };
     }).toList();
 
+    print('[SUPERVISOR_WORKFLOW] Calling WorkflowGraphBuilder.buildNodes()');
     return WorkflowGraphBuilder.buildNodes(
       operations: operationMaps,
       edges: edgeMaps,
