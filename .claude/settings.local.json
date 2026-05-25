@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(anthropic-skills:caveman)",
+      "Skill(anthropic-skills:caveman:*)",
+      "Bash(mysql -h localhost -u root -pPremSai smo -e \"SHOW TABLES;\")",
+      "Bash(chmod +x \"backend/test_end_to_end.sh\")",
+      "Bash(bash \"backend/test_end_to_end.sh\")",
+      "Bash(curl -s -X POST http://localhost:8080/api/supervisor/qr-assignment -H 'Content-Type: application/json' -d '{\"qrCode\":\"TRAY-COLLAR-TOP-001\",\"processPlanNumber\":\"1\",\"trayQuantity\":1,\"supervisorId\":1004,\"style\":\"GT-01 F/S \\(N/W\\)\",\"size\":\"L\",\"gtgNumber\":\"GTG-041\",\"buttonNumber\":\"103/BTA-033\",\"label\":\"Navy/White\"}')",
+      "Bash(chmod +x \"backend/e2e_test_complete.sh\")",
+      "Bash(bash \"backend/e2e_test_complete.sh\")",
+      "Bash(chmod +x \"backend/FINAL_E2E_TEST.sh\")",
+      "Bash(bash \"backend/FINAL_E2E_TEST.sh\")",
+      "Bash(bash COMPLETE_FRESH_E2E.sh)",
+      "Bash(curl -s http://localhost:8080/api/supervisor/employees)",
+      "Bash(xargs cat)",
+      "Bash(grep -E \"\\\\.\\(java\\)$\")",
+      "Bash(curl -s \"http://localhost:8080/api/hr/roles\")"
+    ]
+  }
+}
