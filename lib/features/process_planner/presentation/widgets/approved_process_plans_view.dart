@@ -7,6 +7,7 @@ import 'workflow_graph/workflow_node.dart';
 import 'workflow_graph/horizontal_workflow_graph.dart';
 import 'workflow_graph/workflow_graph_builder.dart';
 import 'node_metrics_dialog.dart';
+import '../../../supervisor/presentation/widgets/operation_status_dialog.dart';
 
 /// Shows a list of APPROVED process plans.
 /// Tapping a plan opens the graph. Tapping a node (if PP_VIEW_NODE_METRICS) shows metrics.
@@ -71,6 +72,11 @@ class _ApprovedProcessPlansViewState extends State<ApprovedProcessPlansView> {
   void _openGraph(ProcessPlanViewModel plan) {
     final nodes = _buildNodes(plan);
     final canViewMetrics = widget.activities.contains('PP_VIEW_NODE_METRICS');
+    final canAccessQrOperations = widget.activities.contains('SUPERVISOR_QR_ASSIGNMENT') ||
+        widget.activities.contains('SUPERVISOR_TRACKING') ||
+        widget.activities.contains('SUPERVISOR_MERGING');
+
+    print('[APPROVED_PLANS_VIEW] Opening graph for routing ${plan.routingId} with ${nodes.length} nodes');
 
     showDialog(
       context: context,
@@ -113,7 +119,10 @@ class _ApprovedProcessPlansViewState extends State<ApprovedProcessPlansView> {
               child: ClipRect(
                 child: HorizontalWorkflowGraph(
                   nodes: nodes,
-                  onNodeTap: null, // Process Planner is readonly - no node interactions
+                  onNodeTap: canAccessQrOperations
+                      ? (routingId, operationId, operationName) =>
+                          _showOperationDetails(ctx, plan, operationId, operationName)
+                      : null,
                 ),
               ),
             ),
@@ -123,7 +132,34 @@ class _ApprovedProcessPlansViewState extends State<ApprovedProcessPlansView> {
     );
   }
 
+  void _showOperationDetails(
+    BuildContext context,
+    ProcessPlanViewModel plan,
+    int operationId,
+    String operationName,
+  ) {
+    // Find the operation in the plan to get its description
+    final operation = plan.operations.firstWhere(
+      (op) => op.operationId == operationId,
+      orElse: () => plan.operations.first,
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => OperationStatusDialog(
+        routingId: plan.routingId,
+        operationId: operationId,
+        operationName: operationName,
+        operationDescription: operation.description,
+      ),
+    );
+  }
+
   List<WorkflowNode> _buildNodes(ProcessPlanViewModel plan) {
+    print('[PROCESS_PLANNER_APPROVED] ═══ BUILDING NODES FOR ROUTING ${plan.routingId} ═══');
+    print('[PROCESS_PLANNER_APPROVED] Operations: ${plan.operations.length}');
+    print('[PROCESS_PLANNER_APPROVED] Edges: ${plan.edges?.length ?? 0}');
+    
     // Use shared builder for single source of truth
     // Convert ProcessPlanViewModel operations to map format
     final operationMaps = plan.operations.map((op) {
@@ -148,6 +184,7 @@ class _ApprovedProcessPlansViewState extends State<ApprovedProcessPlansView> {
       };
     }).toList();
 
+    print('[PROCESS_PLANNER_APPROVED] Calling WorkflowGraphBuilder.buildNodes()');
     return WorkflowGraphBuilder.buildNodes(
       operations: operationMaps,
       edges: edgeMaps,
