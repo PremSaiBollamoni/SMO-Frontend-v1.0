@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../data/api/tracking_api_service.dart';
 import '../../domain/models/tracking_model.dart';
 
@@ -159,12 +158,28 @@ class TrackingController extends GetxController {
         operationId: currentOperationId.value, // Include current operation ID
       );
 
+      print('[TRACKING_SUBMIT] ═══ TRACKING SUBMISSION START ═══');
+      print('[TRACKING_SUBMIT] Machine QR: ${tracking.machineQr}');
+      print('[TRACKING_SUBMIT] Employee QR: ${tracking.employeeQr}');
+      print('[TRACKING_SUBMIT] Tray QR: ${tracking.trayQr}');
+      print('[TRACKING_SUBMIT] Status: ${tracking.status}');
+      print('[TRACKING_SUBMIT] Operation ID: ${tracking.operationId}');
+      print('[TRACKING_SUBMIT] Supervisor ID: ${tracking.supervisorId}');
+
       final result = await _apiService.submitTracking(tracking);
+
+      print('[TRACKING_SUBMIT] Response received: $result');
 
       if (result['success'] == true) {
         final responseData = result['data'] as Map<String, dynamic>;
         lastResponse.value = responseData;
         lastFlowType.value = responseData['flowType'] ?? '';
+
+        print('[TRACKING_SUBMIT] Flow Type: ${responseData['flowType']}');
+        print('[TRACKING_SUBMIT] Message: ${responseData['message']}');
+        print('[TRACKING_SUBMIT] Current Operation: ${responseData['currentOperationId']}');
+        print('[TRACKING_SUBMIT] Next Operation: ${responseData['nextOperationId']}');
+        print('[TRACKING_SUBMIT] Workflow Complete: ${responseData['workflowComplete']}');
 
         // Show success message with flow type information
         String message =
@@ -177,41 +192,52 @@ class TrackingController extends GetxController {
         if (flowType == 'ASSIGNMENT') {
           backgroundColor = Colors.blue;
           title = 'Assignment Created';
+          print('[TRACKING_SUBMIT] ✓ ASSIGNMENT FLOW - Worker assigned to machine & tray');
         } else if (flowType == 'COMPLETION') {
           backgroundColor = Colors.green;
           title = 'Job Completed';
+          print('[TRACKING_SUBMIT] ✓ COMPLETION FLOW - Job completed');
           
           // Check if workflow is complete
           if (responseData['workflowComplete'] == true) {
             title = 'Workflow Complete!';
             message = 'All operations finished!\n\n$message';
+            print('[TRACKING_SUBMIT] ✓ WORKFLOW COMPLETE - All operations done');
+          } else if (responseData['nextOperationId'] != null) {
+            // Tray moved to next operation
+            String nextOpName = responseData['nextOperationName'] ?? 'Next Operation';
+            message += '\n\nTray moved to: $nextOpName';
+            print('[TRACKING_SUBMIT] ✓ TRAY ADVANCED - Next operation: ${responseData['nextOperationId']}');
           }
         }
 
-        // Show toast message
-        Fluttertoast.showToast(
-          msg: '$title\n\n$message',
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 4,
+        print('[TRACKING_SUBMIT] ═══ TRACKING SUBMISSION END (SUCCESS) ═══');
+
+        // Show snackbar message
+        Get.snackbar(
+          title,
+          message,
+          snackPosition: SnackPosition.BOTTOM,
           backgroundColor: backgroundColor,
-          textColor: Colors.white,
-          fontSize: 16.0,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
         );
 
         resetForm();
       } else {
+        print('[TRACKING_SUBMIT] ✗ SUBMISSION FAILED: ${result['message']}');
         throw Exception(result['message'] ?? 'Submission failed');
       }
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: 'Failed to submit tracking:\n$e',
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 4,
+      print('[TRACKING_SUBMIT] ✗ EXCEPTION: $e');
+      print('[TRACKING_SUBMIT] ═══ TRACKING SUBMISSION END (ERROR) ═══');
+      Get.snackbar(
+        'Error',
+        'Failed to submit tracking:\n$e',
+        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
       );
     } finally {
       isSubmitting.value = false;
