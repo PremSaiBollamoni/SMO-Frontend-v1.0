@@ -11,6 +11,7 @@ class QrAssignmentModel {
   final int? supervisorId;
   final String? notes;
   final String? orderNumber; // Added for order linkage
+  final int? operationId; // Operation user clicked on (starting op for this tray)
 
   QrAssignmentModel({
     required this.processPlanNumber,
@@ -25,6 +26,7 @@ class QrAssignmentModel {
     this.supervisorId,
     this.notes,
     this.orderNumber,
+    this.operationId,
   });
 
   Map<String, dynamic> toJson() {
@@ -59,6 +61,9 @@ class QrAssignmentModel {
     if (orderNumber != null && orderNumber!.trim().isNotEmpty) {
       json['orderNumber'] = orderNumber!.trim();
     }
+    if (operationId != null && operationId! > 0) {
+      json['operationId'] = operationId;
+    }
 
     return json;
   }
@@ -77,6 +82,7 @@ class QrAssignmentModel {
       supervisorId: json['supervisorId'],
       notes: json['notes'],
       orderNumber: json['orderNumber'],
+      operationId: json['operationId'],
     );
   }
 
@@ -93,6 +99,7 @@ class QrAssignmentModel {
     int? supervisorId,
     String? notes,
     String? orderNumber,
+    int? operationId,
   }) {
     return QrAssignmentModel(
       processPlanNumber: processPlanNumber ?? this.processPlanNumber,
@@ -107,6 +114,7 @@ class QrAssignmentModel {
       supervisorId: supervisorId ?? this.supervisorId,
       notes: notes ?? this.notes,
       orderNumber: orderNumber ?? this.orderNumber,
+      operationId: operationId ?? this.operationId,
     );
   }
 }
