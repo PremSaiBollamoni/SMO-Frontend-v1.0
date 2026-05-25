@@ -79,6 +79,10 @@ class _GmApprovedProcessPlansViewState extends State<GmApprovedProcessPlansView>
   }
 
   List<WorkflowNode> _buildNodes(ProcessPlanViewModel plan) {
+    print('[GM_APPROVED] ═══ BUILDING NODES FOR ROUTING ${plan.routingId} ═══');
+    print('[GM_APPROVED] Operations: ${plan.operations.length}');
+    print('[GM_APPROVED] Edges: ${plan.edges?.length ?? 0}');
+    
     // Use shared builder for single source of truth
     // Convert ProcessPlanViewModel operations to map format
     final operationMaps = plan.operations.map((op) {
@@ -103,6 +107,7 @@ class _GmApprovedProcessPlansViewState extends State<GmApprovedProcessPlansView>
       };
     }).toList();
 
+    print('[GM_APPROVED] Calling WorkflowGraphBuilder.buildNodes()');
     return WorkflowGraphBuilder.buildNodes(
       operations: operationMaps,
       edges: edgeMaps,
