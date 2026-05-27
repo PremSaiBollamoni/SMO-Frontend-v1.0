@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/floor_insights_response.dart';
+import '../models/wip_stats_response.dart';
 import '../models/merge_bins_request.dart';
 
 /// Supervisor API Service - Handles all supervisor-related API calls
@@ -20,6 +21,22 @@ class SupervisorApiService {
         );
       }
       throw Exception('Failed to fetch floor insights: ${response.statusCode}');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ── WIP Stats ────────────────────────────────────────────────────────────
+
+  Future<WipStatsResponse> fetchWipStats() async {
+    try {
+      final response = await _dio.get('/api/insights/supervisor/wip-stats');
+      if (response.statusCode == 200) {
+        return WipStatsResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+      }
+      throw Exception('Failed to fetch WIP stats: ${response.statusCode}');
     } catch (e) {
       rethrow;
     }

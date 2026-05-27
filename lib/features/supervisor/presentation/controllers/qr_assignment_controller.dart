@@ -132,44 +132,48 @@ class QrAssignmentController extends GetxController {
   // Validate form
   bool validateForm() {
     if (formKey.currentState?.validate() != true) {
+      _showValidationError('Please fill in all required fields correctly');
       return false;
     }
 
     if (selectedProcessPlan.value == null ||
         selectedProcessPlan.value!.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please select a Process Plan Number',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Please select a Process Plan Number');
       return false;
     }
 
     if (qrCodeController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please scan or enter a QR Code',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Please scan or enter a QR Code');
       return false;
     }
 
     if (trayQuantity.value <= 0) {
-      Get.snackbar(
-        'Validation Error',
-        'Tray quantity must be greater than 0',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Tray quantity must be greater than 0');
       return false;
     }
 
     return true;
+  }
+
+  void _showValidationError(String message) {
+    Get.dialog(
+      AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Validation Error'),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Get.back(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   // Submit form with next operation passed from widget
@@ -224,86 +228,67 @@ class QrAssignmentController extends GetxController {
         print('[QR_ASSIGNMENT] Routing ID: ${response['routingId']}');
         
         String message =
-            'QR Assignment Successful!\n\nBin ID: ${response['binId']}\nFirst Operation ID: ${response['currentOperationId']}';
+            'Bin ID: ${response['binId']}\nCurrent Operation ID: ${response['currentOperationId']}';
         if (selectedOrderNumber.value != null) {
           message += '\nLinked to Order: ${selectedOrderNumber.value}';
         }
-        
-        // Show next operation info if available
         if (nextOperationName != null) {
-          message += '\n\nNext Operation: $nextOperationName';
+          message += '\nNext Operation: $nextOperationName';
         }
 
         print('[QR_ASSIGNMENT] ═══ QR ASSIGNMENT SUBMISSION END (SUCCESS) ═══');
 
-        // Reset form first
         resetForm();
-        
-        // Show success snackbar - use Future.delayed to ensure context is ready
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (Get.isSnackbarOpen == false) {
-            Get.snackbar(
-              'Success',
-              message,
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green,
-              colorText: Colors.white,
-              duration: const Duration(seconds: 4),
-            );
-          }
-        });
+        _showResultDialog(true, 'QR Assignment Successful', message);
       } else {
         print('[QR_ASSIGNMENT] ✗ ASSIGNMENT FAILED: ${response['message']}');
         print('[QR_ASSIGNMENT] Error Type: ${response['errorType']}');
         print('[QR_ASSIGNMENT] ═══ QR ASSIGNMENT SUBMISSION END (ERROR) ═══');
         
         String message = response['message'] ?? 'Assignment failed';
-        
-        Color backgroundColor = Colors.red;
         String errorType = response['errorType'] ?? 'UNKNOWN_ERROR';
-
-        switch (errorType) {
-          case 'VALIDATION_ERROR':
-            backgroundColor = Colors.orange;
-            break;
-          case 'STATUS_ERROR':
-            backgroundColor = Colors.amber;
-            message += '\n\nTip: Complete current assignment first';
-            break;
+        if (errorType == 'STATUS_ERROR') {
+          message += '\n\nTip: Complete current assignment first';
         }
-
-        // Show error snackbar - use Future.delayed to ensure context is ready
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (Get.isSnackbarOpen == false) {
-            Get.snackbar(
-              'Error',
-              message,
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: backgroundColor,
-              colorText: Colors.white,
-              duration: const Duration(seconds: 5),
-            );
-          }
-        });
+        _showResultDialog(false, 'QR Assignment Failed', message);
       }
     } catch (e) {
       print('[QR_ASSIGNMENT] ✗ EXCEPTION: $e');
       print('[QR_ASSIGNMENT] ═══ QR ASSIGNMENT SUBMISSION END (ERROR) ═══');
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (Get.isSnackbarOpen == false) {
-          Get.snackbar(
-            'Error',
-            'Failed to submit QR assignment:\n$e',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 4),
-          );
-        }
-      });
+      _showResultDialog(false, 'Submission Error', 'Failed to submit QR assignment:\n$e');
     } finally {
       isSubmitting.value = false;
     }
+  }
+
+  // Show result dialog (works reliably even when called from inside another Dialog)
+  void _showResultDialog(bool success, String title, String message) {
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              success ? Icons.check_circle : Icons.error,
+              color: success ? Colors.green : Colors.red,
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title)),
+          ],
+        ),
+        content: SingleChildScrollView(child: Text(message)),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Get.back(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: success ? Colors.green : Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
   }
 
   // Reset form

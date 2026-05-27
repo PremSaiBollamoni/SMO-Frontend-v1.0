@@ -1,6 +1,8 @@
 import '../api/supervisor_api_service.dart';
 import '../models/merge_bins_request.dart';
+import '../models/wip_stats_response.dart';
 import '../../domain/models/floor_insights_model.dart';
+import '../../domain/models/wip_stats_model.dart';
 
 /// Supervisor Repository - Business logic and data access
 class SupervisorRepository {
@@ -13,6 +15,13 @@ class SupervisorRepository {
 
   Future<FloorInsightsModel> getFloorInsights() async {
     final response = await _apiService.fetchFloorInsights();
+    return response.toDomain();
+  }
+
+  // ── WIP Stats ────────────────────────────────────────────────────────────
+
+  Future<WipStatsModel> getWipStats() async {
+    final response = await _apiService.fetchWipStats();
     return response.toDomain();
   }
 

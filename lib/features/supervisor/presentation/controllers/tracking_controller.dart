@@ -92,54 +92,92 @@ class TrackingController extends GetxController {
   // Validate form
   bool validateForm() {
     if (formKey.currentState?.validate() != true) {
+      _showValidationError('Please fill in all required fields correctly');
       return false;
     }
 
     if (machineQrController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please scan Machine QR',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Please scan Machine QR');
       return false;
     }
 
     if (employeeQrController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please scan Employee QR',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Please scan Employee QR');
       return false;
     }
 
     if (trayQrController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please scan Tray QR',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Please scan Tray QR');
       return false;
     }
 
     if (selectedStatus.value == null || selectedStatus.value!.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please select a status',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Please select a status');
       return false;
     }
 
     return true;
+  }
+
+  void _showValidationError(String message) {
+    Get.dialog(
+      AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Validation Error'),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Get.back(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showResultDialog(bool success, String title, String message) {
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              success ? Icons.check_circle : Icons.error,
+              color: success ? Colors.green : Colors.red,
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title)),
+          ],
+        ),
+        content: SingleChildScrollView(child: Text(message)),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Get.back(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: success ? Colors.green : Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  // Format ISO timestamp into a readable HH:mm:ss
+  String _formatTime(dynamic isoString) {
+    try {
+      final dt = DateTime.parse(isoString.toString()).toLocal();
+      String two(int n) => n.toString().padLeft(2, '0');
+      return '${two(dt.hour)}:${two(dt.minute)}:${two(dt.second)}';
+    } catch (_) {
+      return isoString.toString();
+    }
   }
 
   // Submit form with enhanced two-phase workflow
@@ -186,18 +224,31 @@ class TrackingController extends GetxController {
             responseData['message'] ?? 'Tracking submitted successfully';
         String flowType = responseData['flowType'] ?? '';
 
-        Color backgroundColor = Colors.green;
         String title = 'Success';
 
         if (flowType == 'ASSIGNMENT') {
-          backgroundColor = Colors.blue;
           title = 'Assignment Created';
           print('[TRACKING_SUBMIT] ✓ ASSIGNMENT FLOW - Worker assigned to machine & tray');
+          if (responseData['startTime'] != null) {
+            message += '\n\nStarted at: ${_formatTime(responseData['startTime'])}';
+            message += '\n(Scan again to complete & see duration)';
+          }
         } else if (flowType == 'COMPLETION') {
-          backgroundColor = Colors.green;
           title = 'Job Completed';
           print('[TRACKING_SUBMIT] ✓ COMPLETION FLOW - Job completed');
-          
+
+          // Show duration if available
+          if (responseData['durationFormatted'] != null) {
+            message += '\n\nDuration: ${responseData['durationFormatted']}';
+            if (responseData['durationSeconds'] != null) {
+              message += ' (${responseData['durationSeconds']}s)';
+            }
+          }
+          if (responseData['startTime'] != null && responseData['endTime'] != null) {
+            message += '\nStart: ${_formatTime(responseData['startTime'])}';
+            message += '\nEnd: ${_formatTime(responseData['endTime'])}';
+          }
+
           // Check if workflow is complete
           if (responseData['workflowComplete'] == true) {
             title = 'Workflow Complete!';
@@ -213,16 +264,7 @@ class TrackingController extends GetxController {
 
         print('[TRACKING_SUBMIT] ═══ TRACKING SUBMISSION END (SUCCESS) ═══');
 
-        // Show snackbar message
-        Get.snackbar(
-          title,
-          message,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: backgroundColor,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 4),
-        );
-
+        _showResultDialog(true, title, message);
         resetForm();
       } else {
         print('[TRACKING_SUBMIT] ✗ SUBMISSION FAILED: ${result['message']}');
@@ -231,14 +273,7 @@ class TrackingController extends GetxController {
     } catch (e) {
       print('[TRACKING_SUBMIT] ✗ EXCEPTION: $e');
       print('[TRACKING_SUBMIT] ═══ TRACKING SUBMISSION END (ERROR) ═══');
-      Get.snackbar(
-        'Error',
-        'Failed to submit tracking:\n$e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 4),
-      );
+      _showResultDialog(false, 'Tracking Failed', 'Failed to submit tracking:\n$e');
     } finally {
       isSubmitting.value = false;
     }

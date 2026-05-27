@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../data/repository/supervisor_repository.dart';
 import '../../domain/models/floor_insights_model.dart';
+import '../../domain/models/wip_stats_model.dart';
 
 /// Supervisor Controller - Manages supervisor workspace state
 class SupervisorController extends GetxController {
@@ -19,6 +20,10 @@ class SupervisorController extends GetxController {
   // Floor insights
   final Rx<FloorInsightsModel?> floorInsights = Rx<FloorInsightsModel?>(null);
   final loadingInsights = false.obs;
+
+  // WIP Stats
+  final Rx<WipStatsModel?> wipStats = Rx<WipStatsModel?>(null);
+  final loadingWipStats = false.obs;
 
   // Merge bins
   final targetBundleController = TextEditingController();
@@ -52,6 +57,21 @@ class SupervisorController extends GetxController {
       floorInsights.value = null;
     } finally {
       loadingInsights.value = false;
+    }
+  }
+
+  // ── WIP Stats ────────────────────────────────────────────────────────────
+
+  Future<void> fetchWipStats() async {
+    try {
+      loadingWipStats.value = true;
+      final stats = await _repository.getWipStats();
+      wipStats.value = stats;
+    } catch (e) {
+      debugPrint('Error fetching WIP stats: $e');
+      wipStats.value = null;
+    } finally {
+      loadingWipStats.value = false;
     }
   }
 

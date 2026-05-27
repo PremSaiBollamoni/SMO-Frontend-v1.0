@@ -1,7 +1,8 @@
 /// Application configuration constants
-/// Using local backend URL for testing
-const String fallbackBaseUrl = 'http://192.168.1.11:8080'; // WiFi debugging - phone on same network
+/// Using deployed backend URL
+// const String fallbackBaseUrl = 'http://192.168.0.102:8080'; // WiFi debugging - phone on same network
 // const String fallbackBaseUrl = 'http://10.0.2.2:8080'; // USB debugging (emulator only)
+const String fallbackBaseUrl = 'http://192.168.0.110:8080'; // Local dev - WiFi
 // const String fallbackBaseUrl = 'https://smobza.thegttech.com/smo'; // Deployed backend
 const String appVersion = '1.0';
 const String appName = 'SMO System';

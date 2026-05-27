@@ -7,6 +7,7 @@ import '../../../../login_screen.dart';
 import '../../../../profile_tab.dart';
 import '../controller/supervisor_controller.dart';
 import '../widgets/dashboard_view.dart';
+import '../widgets/wip_stats_view.dart';
 import '../widgets/operator_performance_view.dart';
 import '../widgets/reassign_work_view.dart';
 import '../widgets/workflow_monitoring_view.dart';
@@ -68,6 +69,9 @@ class _SupervisorScreenState extends State<SupervisorScreen> {
     }
     if (acts.contains('SUPERVISOR_MONITOR_WIP')) {
       tabs.add(_TabItem(Icons.dashboard_outlined, 'Monitor WIP', const DashboardView()));
+    }
+    if (acts.contains('SUPERVISOR_MONITOR_WIP')) {
+      tabs.add(_TabItem(Icons.bar_chart_outlined, 'WIP Stats', const WipStatsView()));
     }
     if (acts.contains('SUPERVISOR_VIEW_OPERATOR_PERFORMANCE')) {
       tabs.add(_TabItem(Icons.speed_outlined, 'Operator Performance', const OperatorPerformanceView()));

@@ -45,66 +45,86 @@ class MergingController extends GetxController {
   // Validate form
   bool validateForm() {
     if (formKey.currentState?.validate() != true) {
+      _showValidationError('Please fill in all required fields correctly');
       return false;
     }
 
     if (tub1QrController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please scan Tub 1 QR',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Please scan Tub 1 QR');
       return false;
     }
 
     if (tub1DescriptionController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please enter Tub 1 Description',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Please enter Tub 1 Description');
       return false;
     }
 
     if (tub2QrController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please scan Tub 2 QR',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Please scan Tub 2 QR');
       return false;
     }
 
     if (tub2DescriptionController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Validation Error',
-        'Please enter Tub 2 Description',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Please enter Tub 2 Description');
       return false;
     }
 
-    // Check if both tubs are the same
     if (tub1QrController.text.trim() == tub2QrController.text.trim()) {
-      Get.snackbar(
-        'Validation Error',
-        'Cannot merge the same tub. Please scan different tubs.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
+      _showValidationError('Cannot merge the same tub. Please scan different tubs.');
       return false;
     }
 
     return true;
+  }
+
+  void _showValidationError(String message) {
+    Get.dialog(
+      AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Validation Error'),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Get.back(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showResultDialog(bool success, String title, String message) {
+    Get.dialog(
+      AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              success ? Icons.check_circle : Icons.error,
+              color: success ? Colors.green : Colors.red,
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title)),
+          ],
+        ),
+        content: SingleChildScrollView(child: Text(message)),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Get.back(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: success ? Colors.green : Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
   }
 
   // Submit form
@@ -163,15 +183,7 @@ class MergingController extends GetxController {
 
         print('[MERGING_SUBMIT] ═══ MERGING SUBMISSION END (SUCCESS) ═══');
 
-        Get.snackbar(
-          'Success',
-          message,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 4),
-        );
-        
+        _showResultDialog(true, 'Merge Successful', message);
         resetForm();
       } else {
         print('[MERGING_SUBMIT] ✗ MERGE FAILED: ${response['message']}');
@@ -181,52 +193,24 @@ class MergingController extends GetxController {
         String errorType = response['errorType'] ?? 'UNKNOWN_ERROR';
         String message = response['message'] ?? 'Merging failed';
 
-        Color backgroundColor = Colors.red;
-
-        // Different colors for different error types
         switch (errorType) {
-          case 'VALIDATION_ERROR':
-            backgroundColor = Colors.orange;
-            break;
           case 'COMPATIBILITY_ERROR':
-            backgroundColor = Colors.purple;
             message +=
                 '\n\nTip: Only bins with same style/size/color can be merged';
             break;
           case 'STATUS_ERROR':
-            backgroundColor = Colors.amber;
             message += '\n\nTip: Only ACTIVE bins can be merged';
-            break;
-          case 'BIN_NOT_FOUND':
-            backgroundColor = Colors.red.shade700;
-            break;
-          case 'QUANTITY_ERROR':
-            backgroundColor = Colors.orange.shade700;
             break;
         }
 
         print('[MERGING_SUBMIT] ═══ MERGING SUBMISSION END (ERROR) ═══');
 
-        Get.snackbar(
-          'Error',
-          'Merge Failed\n\n$message',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: backgroundColor,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 5),
-        );
+        _showResultDialog(false, 'Merge Failed', message);
       }
     } catch (e) {
       print('[MERGING_SUBMIT] ✗ EXCEPTION: $e');
       print('[MERGING_SUBMIT] ═══ MERGING SUBMISSION END (ERROR) ═══');
-      Get.snackbar(
-        'Error',
-        'Failed to merge tubs:\n$e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 4),
-      );
+      _showResultDialog(false, 'Merge Error', 'Failed to merge tubs:\n$e');
     } finally {
       isSubmitting.value = false;
     }
