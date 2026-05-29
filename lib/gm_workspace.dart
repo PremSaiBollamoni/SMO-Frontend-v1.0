@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 import 'core/theme/app_theme.dart';
+import 'core/utils/api_error_helper.dart';
+import 'core/utils/switch_role_helper.dart';
 import 'login_screen.dart';
 import 'profile_tab.dart';
 import 'core/network/api_client.dart';
@@ -66,7 +68,7 @@ class _GmWorkspaceState extends State<GmWorkspace> {
         setState(() => _insights = Map<String, dynamic>.from(res.data as Map));
       }
     } catch (e) {
-      if (mounted) CustomSnackbar.showError(context, _extractDioError(e));
+      if (mounted) CustomSnackbar.showError(context, ApiErrorHelper.getMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -489,6 +491,23 @@ class _GmWorkspaceState extends State<GmWorkspace> {
               ),
               ...List.generate(tabItems.length, (i) => _drawerItem(tabItems[i].icon, tabItems[i].label, i)),
               const Spacer(),
+              const Divider(height: 1),
+              FutureBuilder<bool>(
+                future: SwitchRoleHelper.hasMultipleRoles(),
+                builder: (ctx, snap) {
+                  if (snap.data != true) return const SizedBox.shrink();
+                  return ListTile(
+                    leading: const Icon(Icons.switch_account, color: Colors.purple),
+                    title: Text('Switch Role',
+                        style: AppTheme.bodyMedium.copyWith(
+                            color: Colors.purple, fontWeight: FontWeight.w700)),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      SwitchRoleHelper.showRolePicker(context);
+                    },
+                  );
+                },
+              ),
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.logout, color: AppTheme.error),
