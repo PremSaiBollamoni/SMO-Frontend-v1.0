@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../data/api/tracking_api_service.dart';
 import '../../domain/models/tracking_model.dart';
+import '../../../../core/utils/api_error_helper.dart';
 
 class TrackingController extends GetxController {
   final TrackingApiService _apiService = TrackingApiService();
@@ -273,7 +274,7 @@ class TrackingController extends GetxController {
     } catch (e) {
       print('[TRACKING_SUBMIT] ✗ EXCEPTION: $e');
       print('[TRACKING_SUBMIT] ═══ TRACKING SUBMISSION END (ERROR) ═══');
-      _showResultDialog(false, 'Tracking Failed', 'Failed to submit tracking:\n$e');
+      _showResultDialog(false, 'Tracking Failed', ApiErrorHelper.getMessage(e));
     } finally {
       isSubmitting.value = false;
     }
