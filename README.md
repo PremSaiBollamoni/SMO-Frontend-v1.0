@@ -184,6 +184,43 @@ SMO Frontend is a modern, feature-rich Flutter application that provides an intu
 - 🎯 Real-time validation and error handling
 - 💾 Automatic data refresh after operations
 
+#### 14. **Edit Routing — Visual Process Plan Editor** ⭐ NEW
+A new sidebar entry under Process Planner that lets the planner modify any
+existing routing visually using the same graph renderer as the rest of the app.
+Tap any node to open a bottom-sheet menu with seven actions, each with a live
+preview before committing.
+
+Actions:
+- ✏️ **Add a step BEFORE this one** — insert into the path leading into the tapped step
+- ➕ **Add a step AFTER this one** — insert into the path leading out, with a branch picker when there are multiple downstream paths, plus a "Run alongside (parallel)" mode that adds a new branch instead of splitting an existing one
+- 🔗 **Connect to another step** — draw a fresh arrow from this step to any other step in the routing
+- 🔄 **Change what comes next** — pick one of this step's outgoing arrows and redirect it to a different step
+- ➡️ **Move this step** — pick it up and re-place it: insert into a path, run as a parallel branch, or detach as a terminal node, with auto-bridging of old neighbors
+- 📝 **Edit name & description** — rename in this routing only (auto-clones the operation if shared with other routings)
+- 🗑️ **Remove this step from the routing** — auto-bridges predecessors → successors so the flow stays continuous
+
+Plain-English UX:
+- No technical jargon (no "anchor", no "edge")
+- Step kind dropdown shows "Normal", "Side-path", "Joining" instead of SEQUENTIAL/PARALLEL_BRANCH/MERGE
+- Each dialog shows the current state and a live mini-graph preview of the result before submission
+
+Graph rendering improvements (each behind a feature flag for instant revert):
+- 🎨 **Orthogonal (StarUML-style) routing** — right-angle edges only, no diagonals
+- 📍 **Per-source channels** — sibling source nodes get their own vertical channel so their lines never overlap
+- 🌳 **Tree-style fan-out** — multiple outgoing edges share a single source point and split at the channel
+- 🎯 **Fan-in lanes at target** — multiple incoming arrows arrive with vertical spacing so arrowheads don't stack
+- 🚧 **Obstacle dodge** — vertical channels shift past blocking nodes; horizontal runs lift above/below blockers
+- ➡️ **Same-Y straight shortcut** — perfectly aligned source/target draw as a single straight line
+- 📐 **Crossing minimization** — barycenter pass reorders plain (non-semantic) levels to reduce edge crossings
+- 🎯 **Solo-child Y alignment** — single-node levels with one parent align to the parent's Y for clean horizontal arrows
+- 🎯 **Per-node parent alignment** — multi-node levels gravitate each node toward its parent's Y while preserving spacing
+
+#### 15. **Tracking Duration Display** ⭐ NEW
+- ⏱️ Shows time between assign scan and complete scan
+- 📊 Both raw seconds and human-readable format (e.g. "1h 23m 45s")
+- 🕒 Start and end timestamps in the success popup
+- 🎯 Helps supervisors monitor operator productivity in real time
+
 ---
 
 ## 🖼️ Screenshots
