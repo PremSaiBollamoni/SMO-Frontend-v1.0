@@ -1,15 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/api_error_helper.dart';
 import '../controller/hr_controller.dart';
 import 'employee_list_item.dart';
 import 'edit_employee_dialog.dart';
+import 'employee_roles_dialog.dart';
 
 /// Employees management view widget
 class EmployeesView extends StatelessWidget {
   final Function(String) onEmployeeTap;
 
   const EmployeesView({super.key, required this.onEmployeeTap});
+
+  Future<void> _manageRoles(
+    BuildContext context,
+    HrController controller,
+    String empId,
+    String empName,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => EmployeeRolesDialog(
+        empId: empId,
+        empName: empName,
+        allRoles: controller.roles.toList(),
+      ),
+    );
+    if (result == true && context.mounted) {
+      CustomSnackbar.showSuccess(context, 'Roles updated for $empName');
+      await controller.fetchEmployees();
+    }
+  }
 
   Future<void> _deleteEmployee(
     BuildContext context,
@@ -196,7 +218,7 @@ class EmployeesView extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        CustomSnackbar.showError(context, 'Export failed: $e');
+        CustomSnackbar.showError(context, ApiErrorHelper.getMessage(e));
       }
     }
   }
@@ -387,6 +409,12 @@ class EmployeesView extends StatelessWidget {
                           context,
                           controller,
                           employee.empId,
+                        ),
+                        onManageRoles: () => _manageRoles(
+                          context,
+                          controller,
+                          employee.empId,
+                          employee.empName,
                         ),
                       );
                     },
