@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/utils/switch_role_helper.dart';
 import '../../../../login_screen.dart';
 import '../../../../profile_tab.dart';
 import '../controller/operator_controller.dart';
@@ -158,6 +159,23 @@ class _OperatorScreenState extends State<OperatorScreen> {
               _drawerItem(Icons.insights_outlined, 'Performance', 3),
               _drawerItem(Icons.person_outline, 'My Profile', 4),
               const Spacer(),
+              const Divider(height: 1),
+              FutureBuilder<bool>(
+                future: SwitchRoleHelper.hasMultipleRoles(),
+                builder: (ctx, snap) {
+                  if (snap.data != true) return const SizedBox.shrink();
+                  return ListTile(
+                    leading: const Icon(Icons.switch_account, color: Colors.purple),
+                    title: Text('Switch Role',
+                        style: AppTheme.bodyMedium.copyWith(
+                            color: Colors.purple, fontWeight: FontWeight.w700)),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      SwitchRoleHelper.showRolePicker(context);
+                    },
+                  );
+                },
+              ),
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.logout, color: AppTheme.error),
