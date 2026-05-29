@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/switch_role_helper.dart';
 import '../controller/hr_controller.dart';
 
 /// HR Sidebar widget - overlay style
@@ -93,6 +94,21 @@ class HrSidebar extends StatelessWidget {
             ),
           ),
           const Divider(color: Colors.white24, height: 1),
+          FutureBuilder<bool>(
+            future: SwitchRoleHelper.hasMultipleRoles(),
+            builder: (ctx, snap) {
+              if (snap.data != true) return const SizedBox.shrink();
+              return ListTile(
+                leading: const Icon(Icons.switch_account, color: Colors.white),
+                title: const Text('Switch Role',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                onTap: () {
+                  onMenuSelected(0);
+                  SwitchRoleHelper.showRolePicker(ctx);
+                },
+              );
+            },
+          ),
           // Logout button
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.white),
