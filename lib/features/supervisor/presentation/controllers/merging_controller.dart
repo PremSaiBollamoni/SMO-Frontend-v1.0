@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../data/api/merging_api_service.dart';
 import '../../domain/models/merging_model.dart';
+import '../../../../core/utils/api_error_helper.dart';
 
 class MergingController extends GetxController {
   final MergingApiService _apiService = MergingApiService();
@@ -210,7 +211,7 @@ class MergingController extends GetxController {
     } catch (e) {
       print('[MERGING_SUBMIT] ✗ EXCEPTION: $e');
       print('[MERGING_SUBMIT] ═══ MERGING SUBMISSION END (ERROR) ═══');
-      _showResultDialog(false, 'Merge Error', 'Failed to merge tubs:\n$e');
+      _showResultDialog(false, 'Merge Error', ApiErrorHelper.getMessage(e));
     } finally {
       isSubmitting.value = false;
     }
