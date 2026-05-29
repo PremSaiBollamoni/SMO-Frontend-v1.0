@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/switch_role_helper.dart';
 import '../controller/process_planner_controller.dart';
 
 /// Process Planner Sidebar widget - overlay style
@@ -103,6 +104,11 @@ class ProcessPlannerSidebar extends StatelessWidget {
                   index: 4,
                 ),
                 _buildSidebarItem(
+                  icon: Icons.edit_note,
+                  label: 'Edit Routing',
+                  index: 6,
+                ),
+                _buildSidebarItem(
                   icon: Icons.person,
                   label: 'Profile',
                   index: 5,
@@ -111,6 +117,22 @@ class ProcessPlannerSidebar extends StatelessWidget {
             ),
           ),
           const Divider(color: Colors.white24, height: 1),
+          // Switch Role — only shown when employee has multiple roles
+          FutureBuilder<bool>(
+            future: SwitchRoleHelper.hasMultipleRoles(),
+            builder: (ctx, snap) {
+              if (snap.data != true) return const SizedBox.shrink();
+              return ListTile(
+                leading: const Icon(Icons.switch_account, color: Colors.white),
+                title: const Text('Switch Role',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                onTap: () {
+                  onMenuSelected(0); // close sidebar
+                  SwitchRoleHelper.showRolePicker(ctx);
+                },
+              );
+            },
+          ),
           // Logout button
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.white),

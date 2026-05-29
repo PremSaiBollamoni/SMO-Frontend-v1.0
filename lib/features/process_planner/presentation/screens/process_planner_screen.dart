@@ -11,6 +11,7 @@ import '../widgets/products_view.dart';
 import '../widgets/operations_view.dart';
 import '../widgets/routings_view.dart';
 import '../widgets/routing_steps_view.dart';
+import '../widgets/edit_routing_view.dart';
 import '../widgets/profile_view.dart';
 import '../widgets/create_product_dialog.dart';
 import '../widgets/create_operation_dialog.dart';
@@ -106,6 +107,8 @@ class _ProcessPlannerScreenState extends State<ProcessPlannerScreen>
         return 'Routing Steps';
       case 5:
         return 'My Profile';
+      case 6:
+        return 'Edit Routing';
       default:
         return 'Process Planner';
     }
@@ -384,6 +387,8 @@ class _ProcessPlannerScreenState extends State<ProcessPlannerScreen>
         return const RoutingStepsView();
       case 5:
         return const ProfileView();
+      case 6:
+        return const EditRoutingView();
       default:
         return const DashboardView();
     }
