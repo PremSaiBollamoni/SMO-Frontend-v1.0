@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../data/api/qr_assignment_api_service.dart';
 import '../../domain/models/qr_assignment_model.dart';
+import '../../../../core/utils/api_error_helper.dart';
 
 class QrAssignmentController extends GetxController {
   final QrAssignmentApiService _apiService = QrAssignmentApiService();
@@ -255,7 +256,7 @@ class QrAssignmentController extends GetxController {
     } catch (e) {
       print('[QR_ASSIGNMENT] ✗ EXCEPTION: $e');
       print('[QR_ASSIGNMENT] ═══ QR ASSIGNMENT SUBMISSION END (ERROR) ═══');
-      _showResultDialog(false, 'Submission Error', 'Failed to submit QR assignment:\n$e');
+      _showResultDialog(false, 'Submission Error', ApiErrorHelper.getMessage(e));
     } finally {
       isSubmitting.value = false;
     }
