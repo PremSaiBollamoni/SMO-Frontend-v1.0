@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/api_error_helper.dart';
 import '../../domain/models/role_model.dart';
 
 /// Create employee dialog widget
@@ -167,7 +168,7 @@ class _CreateEmployeeDialogState extends State<CreateEmployeeDialog> {
     } catch (e) {
       // Show error in dialog context
       if (mounted) {
-        CustomSnackbar.showError(context, 'Failed: ${e.toString()}');
+        CustomSnackbar.showError(context, ApiErrorHelper.getMessage(e));
       }
     }
   }
