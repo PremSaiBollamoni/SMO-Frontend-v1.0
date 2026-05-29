@@ -12,6 +12,8 @@ import '../widgets/operator_performance_view.dart';
 import '../widgets/reassign_work_view.dart';
 import '../widgets/workflow_monitoring_view.dart';
 import 'temp_qr_management_screen.dart';
+import 'break_window_screen.dart';
+import '../../../../core/utils/switch_role_helper.dart';
 import '../../../../features/process_planner/presentation/widgets/approved_process_plans_view.dart';
 
 /// Supervisor Screen - Activity-driven tab visibility.
@@ -87,6 +89,14 @@ class _SupervisorScreenState extends State<SupervisorScreen> {
         Icons.account_tree_outlined,
         'Process Plans',
         ApprovedProcessPlansView(empId: widget.empId, activities: widget.activities),
+      ));
+    }
+    // Break windows — available to all supervisors
+    if (acts.contains('SUPERVISOR_MONITOR_WIP') || acts.contains('PP_VIEW_ALL')) {
+      tabs.add(_TabItem(
+        Icons.free_breakfast_outlined,
+        'Break Windows',
+        const BreakWindowScreen(),
       ));
     }
     // Profile always available
@@ -193,6 +203,26 @@ class _SupervisorScreenState extends State<SupervisorScreen> {
               ),
               ...List.generate(_tabs.length, _buildDrawerItem),
               const Spacer(),
+              const Divider(height: 1),
+              // Switch Role — only shown when employee has multiple roles
+              FutureBuilder<bool>(
+                future: SwitchRoleHelper.hasMultipleRoles(),
+                builder: (ctx, snap) {
+                  if (snap.data != true) return const SizedBox.shrink();
+                  return ListTile(
+                    leading: const Icon(Icons.switch_account, color: Colors.purple),
+                    title: Text(
+                      'Switch Role',
+                      style: AppTheme.bodyMedium.copyWith(
+                          color: Colors.purple, fontWeight: FontWeight.w700),
+                    ),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      SwitchRoleHelper.showRolePicker(context);
+                    },
+                  );
+                },
+              ),
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.logout, color: AppTheme.error),
