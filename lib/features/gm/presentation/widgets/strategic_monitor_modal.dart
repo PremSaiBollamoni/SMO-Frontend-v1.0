@@ -239,7 +239,6 @@ class _StrategicMonitorModalState extends State<StrategicMonitorModal> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final orderId = _orderStatus!['order_id'] ?? 'N/A';
     final activeBins = _orderStatus!['active_bins'] ?? 0;
-    final wipQuantity = _orderStatus!['wip_quantity'] ?? 0;
     final todayOperations = _orderStatus!['today_operations'] ?? 0;
 
     return Container(
@@ -255,10 +254,6 @@ class _StrategicMonitorModalState extends State<StrategicMonitorModal> {
           const SizedBox(width: 8),
           Expanded(
             child: _buildKPICard('Active Bins', activeBins.toString(), dark),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildKPICard('WIP Qty', wipQuantity.toString(), dark),
           ),
           const SizedBox(width: 8),
           Expanded(
