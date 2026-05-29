@@ -20,6 +20,29 @@ class LayeredLayoutEngine {
   static const double nodeWidth = 140.0;
   static const double nodeHeight = 60.0;
 
+  /// Feature flag — set to false to fully disable the barycenter pass and
+  /// restore exactly the previous (semantic-only) ordering behavior.
+  static const bool enableCrossingMinimization = true;
+
+  /// Feature flag — when a level has a SINGLE node whose only parent is in
+  /// the previous level, vertically align the node with its parent so the
+  /// arrow draws as a clean horizontal line. Set to false to revert.
+  static const bool alignSoloChildToParent = true;
+
+  /// Markers that indicate a level is governed by hand-tuned semantic ordering.
+  /// If ANY node in a level matches one of these tokens (case-insensitive
+  /// substring match against the node id), the barycenter pass skips that
+  /// level so the existing logic stays in control.
+  static const List<String> _semanticMarkers = [
+    'SLEEVE_LINE',
+    'COLLAR_CUFF_LINE',
+    'POCKET_PLACKET_LINE',
+    'BODY_LINE',
+    'MERGE_COLLAR',
+    'MERGE_POCKET',
+    'MERGE_SLEEVE',
+  ];
+
   // ── Public API ─────────────────────────────────────────────────────────────
 
   static List<NodePosition> calculatePositions(List<WorkflowNode> nodes) {
@@ -44,8 +67,17 @@ class LayeredLayoutEngine {
   ) {
     final positions = <NodePosition>[];
 
+    // ── Crossing-minimization pass (additive, opt-in via flag) ──────────────
+    // Only reorders nodes within "plain" levels — levels that have no semantic
+    // markers (SLEEVE_LINE / COLLAR_CUFF_LINE / POCKET_PLACKET_LINE /
+    // BODY_LINE / MERGE_*) so the hand-tuned logic stays in charge of those.
+    // Returns a fresh map so we don't mutate the caller's level groups.
+    final orderedLevelGroups = enableCrossingMinimization
+        ? _reduceCrossings(nodes, levelGroups, maxLevel)
+        : levelGroups;
+
     // Calculate the maximum number of nodes in any level for canvas height
-    final maxNodesInLevel = levelGroups.values
+    final maxNodesInLevel = orderedLevelGroups.values
         .map((v) => v.length)
         .fold(0, (a, b) => a > b ? a : b);
 
@@ -58,6 +90,23 @@ class LayeredLayoutEngine {
       nodeMap[n.id] = n;
     }
 
+    // Build incoming-edges map (nodeId -> list of parent ids).
+    // Used by the solo-child alignment pass below.
+    final incomingByNode = <String, List<String>>{};
+    if (alignSoloChildToParent) {
+      for (final n in nodes) {
+        for (final idx in n.connections) {
+          if (idx >= 0 && idx < nodes.length) {
+            final childId = nodes[idx].id;
+            incomingByNode.putIfAbsent(childId, () => []).add(n.id);
+          }
+        }
+      }
+    }
+
+    // Track Y of every placed node so a later level can lookup its parent's Y.
+    final placedNodeY = <String, double>{};
+
     // Calculate X positions with adaptive spacing for merge chains
     double currentX = startX;
     final levelXPositions = <int, double>{};
@@ -65,7 +114,7 @@ class LayeredLayoutEngine {
     for (int level = 0; level <= maxLevel; level++) {
       levelXPositions[level] = currentX;
       
-      final levelNodes = levelGroups[level] ?? [];
+      final levelNodes = orderedLevelGroups[level] ?? [];
       if (levelNodes.isEmpty) continue;
       
       // Detect if this level is part of a merge chain (single merge node)
@@ -78,7 +127,7 @@ class LayeredLayoutEngine {
     }
 
     for (int level = 0; level <= maxLevel; level++) {
-      var levelNodes = List<String>.from(levelGroups[level] ?? []);
+      var levelNodes = List<String>.from(orderedLevelGroups[level] ?? []);
       if (levelNodes.isEmpty) continue;
 
       final x = levelXPositions[level]!;
@@ -142,11 +191,85 @@ class LayeredLayoutEngine {
 
       // ── Polish 3: Symmetric fan-out — center all levels around canvasCenterY
       final totalHeight = (levelNodes.length - 1) * effectiveSpacing;
-      final levelStartY = canvasCenterY - totalHeight / 2;
+      double levelStartY = canvasCenterY - totalHeight / 2;
+
+      // ── Polish 4 (NEW): align solo-child levels to their parent's Y so the
+      // edge draws as a clean horizontal line.
+      // Only applies when:
+      //   - the level has exactly 1 node
+      //   - that node has exactly 1 parent in incoming edges
+      //   - the parent has already been placed (i.e. is in a lower level)
+      // Multi-node and multi-parent levels keep their normal centered layout.
+      if (alignSoloChildToParent && levelNodes.length == 1) {
+        final loneId = levelNodes.first;
+        final parents = incomingByNode[loneId] ?? const <String>[];
+        if (parents.length == 1) {
+          final parentId = parents.first;
+          final parentY = placedNodeY[parentId];
+          if (parentY != null) {
+            levelStartY = parentY;
+          }
+        }
+      }
+
+      // ── Polish 5 (NEW): per-node parent-Y alignment within multi-node levels.
+      // For each node, prefer its parent's Y (or the average of parent Ys when
+      // there are multiple). Then resolve overlaps by enforcing min spacing.
+      // Skipped for semantic levels so hand-tuned layouts stay untouched.
+      List<double>? customYs;
+      if (alignSoloChildToParent &&
+          levelNodes.length > 1 &&
+          !_isSemanticLevel(levelNodes)) {
+        final preferred = <double>[];
+        bool anyHasParent = false;
+        for (final id in levelNodes) {
+          final parents = incomingByNode[id] ?? const <String>[];
+          double sum = 0;
+          int count = 0;
+          for (final p in parents) {
+            final py = placedNodeY[p];
+            if (py != null) {
+              sum += py;
+              count++;
+            }
+          }
+          if (count > 0) {
+            anyHasParent = true;
+            preferred.add(sum / count);
+          } else {
+            // Fall back to centered position
+            preferred.add(levelStartY + preferred.length * effectiveSpacing);
+          }
+        }
+
+        if (anyHasParent) {
+          // Sort indexes of levelNodes by preferred Y to produce a stable
+          // top-to-bottom order matching parent positions.
+          final indexes = List<int>.generate(levelNodes.length, (i) => i);
+          indexes.sort((a, b) => preferred[a].compareTo(preferred[b]));
+
+          // Walk the sorted list, enforcing min vertical spacing.
+          final assigned = List<double>.filled(levelNodes.length, 0);
+          double lastY = double.negativeInfinity;
+          for (final i in indexes) {
+            double y = preferred[i];
+            if (y < lastY + effectiveSpacing) {
+              y = lastY + effectiveSpacing;
+            }
+            assigned[i] = y;
+            lastY = y;
+          }
+          customYs = assigned;
+        }
+      }
 
       for (int i = 0; i < levelNodes.length; i++) {
         final nodeId = levelNodes[i];
-        final y = levelStartY + i * effectiveSpacing;
+        final y = customYs != null
+            ? customYs[i]
+            : levelStartY + i * effectiveSpacing;
+
+        placedNodeY[nodeId] = y;
 
         positions.add(
           NodePosition(
@@ -184,5 +307,115 @@ class LayeredLayoutEngine {
       if (nodes[i].id == id) return i;
     }
     return 0;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  //  Crossing minimization (barycenter sweep)
+  //
+  //  Reorders nodes within plain levels so that each node sits as close as
+  //  possible to the average position of the predecessors that point to it.
+  //  This dramatically reduces edge crossings in plain DAG layouts without
+  //  touching levels assigned by the semantic ordering rules above.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Returns true if any node id in [levelIds] contains one of the semantic
+  /// marker tokens. Such a level is left untouched by the barycenter pass.
+  static bool _isSemanticLevel(List<String> levelIds) {
+    for (final id in levelIds) {
+      final upper = id.toUpperCase();
+      for (final marker in _semanticMarkers) {
+        if (upper.contains(marker)) return true;
+      }
+    }
+    return false;
+  }
+
+  /// Run a top-down barycenter sweep across all plain (non-semantic) levels.
+  /// Level 0 is left as-is (no predecessors to balance against).
+  /// Returns a NEW map — the input is never mutated.
+  static Map<int, List<String>> _reduceCrossings(
+    List<WorkflowNode> nodes,
+    Map<int, List<String>> levelGroups,
+    int maxLevel,
+  ) {
+    // Deep copy to avoid mutating caller state
+    final ordered = <int, List<String>>{};
+    levelGroups.forEach((k, v) => ordered[k] = List<String>.from(v));
+
+    // Build a map of nodeId -> outgoing target ids (forward adjacency)
+    // The connections list on WorkflowNode stores target indexes into nodes.
+    final outgoing = <String, List<String>>{};
+    for (final n in nodes) {
+      final targets = <String>[];
+      for (final idx in n.connections) {
+        if (idx >= 0 && idx < nodes.length) {
+          targets.add(nodes[idx].id);
+        }
+      }
+      outgoing[n.id] = targets;
+    }
+
+    // Build incoming map: child -> list of parent ids
+    final incoming = <String, List<String>>{};
+    outgoing.forEach((parent, children) {
+      for (final child in children) {
+        incoming.putIfAbsent(child, () => []).add(parent);
+      }
+    });
+
+    // One top-down pass is enough for most practical graphs and avoids any
+    // chance of oscillation on edge cases. Skip level 0 (no predecessors).
+    for (int level = 1; level <= maxLevel; level++) {
+      final ids = ordered[level] ?? const <String>[];
+      if (ids.length < 2) continue; // nothing to reorder
+      if (_isSemanticLevel(ids)) continue; // hand-tuned levels stay as-is
+
+      // Predecessor positions = current order of the previous level
+      final prev = ordered[level - 1] ?? const <String>[];
+      final prevIndex = <String, int>{};
+      for (int i = 0; i < prev.length; i++) {
+        prevIndex[prev[i]] = i;
+      }
+
+      // Compute barycenter (average parent index) for each node in this level.
+      // Nodes without parents in the previous level keep their current index
+      // so they don't get shoved to one end of the level.
+      final originalIndex = <String, int>{};
+      for (int i = 0; i < ids.length; i++) {
+        originalIndex[ids[i]] = i;
+      }
+
+      double bary(String id) {
+        final parents = incoming[id] ?? const <String>[];
+        final indices = <int>[];
+        for (final p in parents) {
+          final idx = prevIndex[p];
+          if (idx != null) indices.add(idx);
+        }
+        if (indices.isEmpty) {
+          // No usable parent → keep current relative position
+          return originalIndex[id]!.toDouble();
+        }
+        double sum = 0;
+        for (final i in indices) {
+          sum += i;
+        }
+        return sum / indices.length;
+      }
+
+      final sorted = List<String>.from(ids);
+      sorted.sort((a, b) {
+        final ba = bary(a);
+        final bb = bary(b);
+        final cmp = ba.compareTo(bb);
+        if (cmp != 0) return cmp;
+        // Stable tiebreaker by original index
+        return originalIndex[a]!.compareTo(originalIndex[b]!);
+      });
+
+      ordered[level] = sorted;
+    }
+
+    return ordered;
   }
 }
