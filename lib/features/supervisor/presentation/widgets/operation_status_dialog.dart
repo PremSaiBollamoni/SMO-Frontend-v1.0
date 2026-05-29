@@ -305,10 +305,6 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: _buildKPICard('WIP Qty', wipQuantity.toString(), dark),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
             child: _buildKPICard('Completed', completedQuantity.toString(), dark),
           ),
         ],
@@ -353,7 +349,7 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
     final activeBins = _operationStatus!['active_bins'] ?? 0;
     final activeOperators = _operationStatus!['active_operators'] ?? 0;
     final lastAction = _operationStatus!['last_action'] ?? 'None';
-    final lastActionTime = _operationStatus!['last_action_time'] ?? 'N/A';
+    final lastActionTime = _formatTimestamp(_operationStatus!['last_action_time']);
 
     // Calculate progress percentage
     double progressPercent = 0.0;
@@ -453,6 +449,13 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
     final description = _operationStatus!['description'] ?? widget.operationDescription;
     final estimatedTime = _operationStatus!['estimated_time'] ?? 'N/A';
     final nextOperation = _operationStatus!['next_operation'] ?? 'N/A';
+    final actualStart = _formatTimestamp(_operationStatus!['actual_start_time']);
+    final actualEnd = _operationStatus!['actual_end_time'] == 'In progress...'
+        ? 'In progress...'
+        : _formatTimestamp(_operationStatus!['actual_end_time']);
+    final actualDuration = _operationStatus!['actual_duration'] ?? 'N/A';
+
+    final hasActualTiming = actualStart != 'N/A';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -480,12 +483,61 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
           _buildDetailRow('Est. Time', estimatedTime),
           const SizedBox(height: 8),
           _buildDetailRow('Next Operation', nextOperation),
+          if (hasActualTiming) ...[
+            const SizedBox(height: 12),
+            Divider(color: dark ? Colors.white12 : Colors.grey.shade300, height: 1),
+            const SizedBox(height: 12),
+            Text(
+              'Actual Timing',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: Colors.teal.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildDetailRow('Start Time', actualStart),
+            const SizedBox(height: 8),
+            _buildDetailRow('End Time', actualEnd),
+            const SizedBox(height: 8),
+            _buildDetailRow(
+              'Duration',
+              actualDuration,
+              valueColor: actualDuration.contains('ongoing')
+                  ? Colors.orange
+                  : Colors.teal.shade700,
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  /// Format an ISO timestamp string like "2026-05-25T14:51:20.970323"
+  /// into a readable "25 May 2026, 02:51 PM"
+  String _formatTimestamp(dynamic raw) {
+    if (raw == null || raw.toString() == 'N/A' || raw.toString().isEmpty) {
+      return 'N/A';
+    }
+    try {
+      final dt = DateTime.parse(raw.toString()).toLocal();
+      final months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      final day = dt.day.toString().padLeft(2, '0');
+      final month = months[dt.month - 1];
+      final year = dt.year;
+      final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+      final minute = dt.minute.toString().padLeft(2, '0');
+      final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+      return '$day $month $year, ${hour.toString().padLeft(2, '0')}:$minute $ampm';
+    } catch (_) {
+      return raw.toString();
+    }
+  }
+
+  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -503,9 +555,10 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
+              color: valueColor,
             ),
           ),
         ),
