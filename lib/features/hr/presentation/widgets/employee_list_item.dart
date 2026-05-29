@@ -10,6 +10,7 @@ class EmployeeListItem extends StatefulWidget {
   final VoidCallback? onCheckboxChanged;
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
+  final VoidCallback? onManageRoles;
 
   const EmployeeListItem({
     super.key,
@@ -19,6 +20,7 @@ class EmployeeListItem extends StatefulWidget {
     this.onCheckboxChanged,
     this.onDelete,
     this.onEdit,
+    this.onManageRoles,
   });
 
   @override
@@ -147,6 +149,16 @@ class _EmployeeListItemState extends State<EmployeeListItem> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.switch_account, color: Colors.purple, size: 18),
+                        onPressed: widget.onManageRoles,
+                        tooltip: 'Manage Roles',
+                      ),
+                    ),
                     SizedBox(
                       width: 32,
                       height: 32,
