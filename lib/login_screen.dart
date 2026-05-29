@@ -14,6 +14,7 @@ import 'gm_workspace.dart';
 import 'features/process_planner/presentation/screens/process_planner_screen.dart';
 import 'core/network/api_client.dart';
 import 'access_denied_screen.dart';
+import 'role_picker_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final Function(bool)? setDarkMode;
@@ -94,12 +95,51 @@ class _LoginScreenState extends State<LoginScreen> {
         debugPrint('[LOGIN] Login successful for: ${roleResponse.employeeName}');
         debugPrint('[LOGIN] Role: ${roleResponse.role}');
         debugPrint('[LOGIN] Activities: ${roleResponse.activities}');
+        debugPrint('[LOGIN] All roles count: ${roleResponse.allRoles.length}');
 
+        // If employee has multiple roles, show role picker
+        if (roleResponse.allRoles.length > 1) {
+          if (!mounted) return;
+          // Store empId now so it's available when role is picked
+          ApiClient().setEmpId(roleResponse.empId);
+          // Persist allRoles so Switch Role works mid-session
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('EMPLOYEE_NAME', roleResponse.employeeName);
+          await prefs.setString('EMP_ID', roleResponse.empId);
+          await prefs.setString('ALL_ROLES', _encodeRoles(roleResponse.allRoles));
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (pickerContext) => RolePickerScreen(
+                empId: roleResponse.empId,
+                employeeName: roleResponse.employeeName,
+                roles: roleResponse.allRoles,
+                onRoleSelected: (selectedRole, selectedActivities) {
+                  final home = _buildHomeForRole(
+                    selectedRole.toUpperCase().trim(),
+                    roleResponse.empId,
+                    roleResponse.employeeName,
+                    selectedActivities,
+                  );
+                  // Navigate from the picker's context — it's still mounted
+                  Navigator.of(pickerContext).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => home),
+                    (_) => false,
+                  );
+                },
+              ),
+            ),
+          );
+          return;
+        }
+
+        // Single role — proceed as before
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('EMPLOYEE_NAME', roleResponse.employeeName);
         await prefs.setString('ROLE', roleResponse.role);
         await prefs.setString('EMP_ID', roleResponse.empId);
         await prefs.setString('ACTIVITIES', roleResponse.activities);
+        // Single role — no switch option needed
+        await prefs.setString('ALL_ROLES', '');
 
         // Set Emp ID in ApiClient
         ApiClient().setEmpId(roleResponse.empId);
@@ -158,6 +198,17 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     }
+  }
+
+  /// Encode allRoles list to a JSON string for SharedPreferences storage
+  String _encodeRoles(List<Map<String, dynamic>> roles) {
+    // Simple encoding: roleId|roleName|activities joined by ;;
+    return roles.map((r) {
+      final id = r['roleId']?.toString() ?? '';
+      final name = (r['roleName'] ?? '').toString().replaceAll('|', '-');
+      final acts = (r['activities'] ?? '').toString();
+      return '$id|$name|$acts';
+    }).join(';;');
   }
 
   Widget _buildHomeForRole(
