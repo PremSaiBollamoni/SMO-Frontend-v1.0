@@ -14,20 +14,32 @@ class RoleResponse {
   final String employeeName;
   final String empId;
   final String activities;
+  /// All roles assigned to this employee. Empty list = single role (no picker needed).
+  final List<Map<String, dynamic>> allRoles;
 
   RoleResponse({
     required this.role,
     required this.employeeName,
     required this.empId,
     this.activities = '',
+    this.allRoles = const [],
   });
 
   factory RoleResponse.fromJson(Map<String, dynamic> json) {
+    final rawRoles = json['allRoles'];
+    List<Map<String, dynamic>> roles = [];
+    if (rawRoles is List) {
+      roles = rawRoles
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
     return RoleResponse(
       role: (json['role'] ?? '').toString(),
       employeeName: (json['employeeName'] ?? '').toString(),
       empId: (json['empId'] ?? '').toString(),
       activities: (json['activities'] ?? '').toString(),
+      allRoles: roles,
     );
   }
 }
