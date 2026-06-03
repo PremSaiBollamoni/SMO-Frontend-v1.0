@@ -1,7 +1,7 @@
 /// Application configuration constants
-/// Using localhost for testing
-const String fallbackBaseUrl = 'http://localhost:8080'; // Local dev - localhost
-// const String fallbackBaseUrl = 'https://smobza.thegttech.com/smo'; // Deployed backend
+/// Production deployment
+// const String fallbackBaseUrl = 'http://localhost:8080'; // Local dev - localhost
+const String fallbackBaseUrl = 'https://smobza.thegttech.com/smo'; // Deployed backend
 const String appVersion = '1.0';
 const String appName = 'SMO System';
 const String appSubtitle = 'Sewing Machine Operations';
