@@ -32,6 +32,12 @@ class _ProfileTabState extends State<ProfileTab> {
   final _emergencyCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
   Future<void> _loadProfile() async {
     setState(() => _loading = true);
     try {
@@ -118,18 +124,15 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   Widget _infoRow(String label, String value) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: dark
-            ? AppTheme.darkSurfaceVariant.withValues(alpha: 0.5)
-            : AppTheme.surfaceVariant.withValues(alpha: 0.45),
+        color: AppTheme.surfaceVariant.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: dark ? AppTheme.darkSurfaceVariant : AppTheme.surfaceVariant,
+          color: AppTheme.surfaceVariant,
         ),
       ),
       child: Column(
@@ -145,7 +148,7 @@ class _ProfileTabState extends State<ProfileTab> {
           Text(
             value.trim().isEmpty ? '-' : value,
             style: AppTheme.bodyMedium.copyWith(
-              color: dark ? AppTheme.darkOnSurface : AppTheme.onSurface,
+              color: AppTheme.onSurface,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -159,23 +162,18 @@ class _ProfileTabState extends State<ProfileTab> {
     String label, {
     bool obscure = false,
   }) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
         controller: ctrl,
         obscureText: obscure,
-        decoration: dark
-            ? AppTheme.darkInputDecoration(label)
-            : AppTheme.inputDecoration(label),
+        decoration: AppTheme.inputDecoration(label),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -189,9 +187,7 @@ class _ProfileTabState extends State<ProfileTab> {
         children: [
           // Header card
           Container(
-            decoration: dark
-                ? AppTheme.darkCardDecoration
-                : AppTheme.cardDecoration,
+            decoration: AppTheme.cardDecoration,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -282,9 +278,7 @@ class _ProfileTabState extends State<ProfileTab> {
           if (!_editMode) ...[
             // Read-only view
             Container(
-              decoration: dark
-                  ? AppTheme.darkCardDecoration
-                  : AppTheme.cardDecoration,
+              decoration: AppTheme.cardDecoration,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -307,9 +301,7 @@ class _ProfileTabState extends State<ProfileTab> {
           ] else ...[
             // Edit form
             Container(
-              decoration: dark
-                  ? AppTheme.darkCardDecoration
-                  : AppTheme.cardDecoration,
+              decoration: AppTheme.cardDecoration,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(

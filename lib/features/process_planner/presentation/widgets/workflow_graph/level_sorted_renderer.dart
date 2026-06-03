@@ -108,6 +108,7 @@ class _LevelSortedRendererState extends State<LevelSortedRenderer> {
                       }
                     },
                     child: WorkflowNodeWidget(
+                      key: ValueKey('node_${node.id}'),
                       node: node,
                       width: pos.width,
                       height: pos.height,

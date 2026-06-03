@@ -98,7 +98,7 @@ class MasterDataApiService {
     }
   }
 
-  Future<Map<String, dynamic>> updateMachine(int id, MachineModel machine) async {
+  Future<Map<String, dynamic>> updateMachine(String id, MachineModel machine) async {
     try {
       final response = await _dio.put(
         '/api/gm/masterdata/machines/$id',
@@ -110,7 +110,7 @@ class MasterDataApiService {
     }
   }
 
-  Future<Map<String, dynamic>> deleteMachine(int id) async {
+  Future<Map<String, dynamic>> deleteMachine(String id) async {
     try {
       final response = await _dio.delete('/api/gm/masterdata/machines/$id');
       return response.data;

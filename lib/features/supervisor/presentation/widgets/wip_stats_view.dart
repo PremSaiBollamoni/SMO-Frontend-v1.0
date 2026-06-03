@@ -25,7 +25,6 @@ class _WipStatsViewState extends State<WipStatsView> {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<SupervisorController>();
-    final dark = Theme.of(context).brightness == Brightness.dark;
 
     return Obx(() {
       final stats = controller.wipStats.value;
@@ -36,7 +35,7 @@ class _WipStatsViewState extends State<WipStatsView> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _buildHeader(dark, loading, controller),
+            _buildHeader(loading, controller),
             if (loading)
               const Center(
                 child: Padding(
@@ -46,32 +45,31 @@ class _WipStatsViewState extends State<WipStatsView> {
               )
             else if (stats == null)
               _buildCard(
-                dark,
                 Text('No WIP data available. Pull to refresh.', style: AppTheme.bodyLarge),
               )
             else ...[
               // Overall Stats Cards
-              _buildOverallStatsCards(dark, stats),
+              _buildOverallStatsCards(stats),
               const SizedBox(height: 16),
 
               // Status Distribution Pie Chart
               if (stats.statusDistribution.isNotEmpty)
-                _buildStatusDistributionChart(dark, stats),
+                _buildStatusDistributionChart(stats),
               const SizedBox(height: 16),
 
               // Hourly WIP Line Chart
               if (stats.hourlyStats.isNotEmpty)
-                _buildHourlyWipChart(dark, stats),
+                _buildHourlyWipChart(stats),
               const SizedBox(height: 16),
 
               // Operation-wise WIP Bar Chart
               if (stats.operationStats.isNotEmpty)
-                _buildOperationWipChart(dark, stats),
+                _buildOperationWipChart(stats),
               const SizedBox(height: 16),
 
               // Operation Details Table
               if (stats.operationStats.isNotEmpty)
-                _buildOperationDetailsTable(dark, stats),
+                _buildOperationDetailsTable(stats),
             ],
           ],
         ),
@@ -79,9 +77,8 @@ class _WipStatsViewState extends State<WipStatsView> {
     });
   }
 
-  Widget _buildHeader(bool dark, bool loading, SupervisorController controller) {
+  Widget _buildHeader(bool loading, SupervisorController controller) {
     return _buildCard(
-      dark,
       Row(
         children: [
           Expanded(
@@ -96,14 +93,13 @@ class _WipStatsViewState extends State<WipStatsView> {
     );
   }
 
-  Widget _buildOverallStatsCards(bool dark, WipStatsModel stats) {
+  Widget _buildOverallStatsCards(WipStatsModel stats) {
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _buildStatCard(
-                dark,
                 'Total WIP',
                 '${stats.totalWipCount}',
                 AppTheme.primary,
@@ -113,7 +109,6 @@ class _WipStatsViewState extends State<WipStatsView> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                dark,
                 'Active',
                 '${stats.activeWipCount}',
                 AppTheme.success,
@@ -127,7 +122,6 @@ class _WipStatsViewState extends State<WipStatsView> {
           children: [
             Expanded(
               child: _buildStatCard(
-                dark,
                 'Pending',
                 '${stats.pendingWipCount}',
                 AppTheme.warning,
@@ -137,7 +131,6 @@ class _WipStatsViewState extends State<WipStatsView> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                dark,
                 'Completed Today',
                 '${stats.completedTodayCount}',
                 AppTheme.success,
@@ -151,14 +144,12 @@ class _WipStatsViewState extends State<WipStatsView> {
   }
 
   Widget _buildStatCard(
-    bool dark,
     String label,
     String value,
     Color color,
     IconData icon,
   ) {
     return _buildCard(
-      dark,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -184,9 +175,8 @@ class _WipStatsViewState extends State<WipStatsView> {
     );
   }
 
-  Widget _buildStatusDistributionChart(bool dark, WipStatsModel stats) {
+  Widget _buildStatusDistributionChart(WipStatsModel stats) {
     return _buildCard(
-      dark,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -218,9 +208,8 @@ class _WipStatsViewState extends State<WipStatsView> {
     );
   }
 
-  Widget _buildHourlyWipChart(bool dark, WipStatsModel stats) {
+  Widget _buildHourlyWipChart(WipStatsModel stats) {
     return _buildCard(
-      dark,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -266,11 +255,10 @@ class _WipStatsViewState extends State<WipStatsView> {
     );
   }
 
-  Widget _buildOperationWipChart(bool dark, WipStatsModel stats) {
+  Widget _buildOperationWipChart(WipStatsModel stats) {
     final topOperations = stats.operationStats.take(10).toList();
 
     return _buildCard(
-      dark,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -302,9 +290,8 @@ class _WipStatsViewState extends State<WipStatsView> {
     );
   }
 
-  Widget _buildOperationDetailsTable(bool dark, WipStatsModel stats) {
+  Widget _buildOperationDetailsTable(WipStatsModel stats) {
     return _buildCard(
-      dark,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -368,11 +355,11 @@ class _WipStatsViewState extends State<WipStatsView> {
     );
   }
 
-  Widget _buildCard(bool dark, Widget child) {
+  Widget _buildCard(Widget child) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: dark ? AppTheme.darkCardDecoration : AppTheme.cardDecoration,
+      decoration: AppTheme.cardDecoration,
       child: Padding(padding: const EdgeInsets.all(16), child: child),
     );
   }

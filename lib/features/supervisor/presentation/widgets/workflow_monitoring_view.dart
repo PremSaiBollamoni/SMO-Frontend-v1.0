@@ -110,6 +110,7 @@ class _WorkflowMonitoringViewState extends State<WorkflowMonitoringView> {
               child: ClipRect(
                 child: HorizontalWorkflowGraph(
                   nodes: nodes,
+                  routingId: plan.routingId,
                   onNodeTap: (routingId, operationId, operationName) {
                     showDialog(
                       context: ctx,

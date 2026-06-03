@@ -119,6 +119,7 @@ class _ApprovedProcessPlansViewState extends State<ApprovedProcessPlansView> {
               child: ClipRect(
                 child: HorizontalWorkflowGraph(
                   nodes: nodes,
+                  routingId: plan.routingId,
                   onNodeTap: canAccessQrOperations
                       ? (routingId, operationId, operationName) =>
                           _showOperationDetails(ctx, plan, operationId, operationName)

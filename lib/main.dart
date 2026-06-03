@@ -37,7 +37,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool _isDarkMode = false;
   bool _isLoading = true;
   String _connectionStatus = 'Checking server connection...';
   bool _connectionSuccess = false;
@@ -183,11 +182,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _loadThemePreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isDarkMode = prefs.getBool('dark_mode') ?? false;
-    setState(() {
-      _isDarkMode = isDarkMode;
-    });
+    // Light mode only — no dark theme
   }
 
   Future<void> _restoreSession() async {
@@ -305,10 +300,8 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  void setDarkMode(bool isDarkMode) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('dark_mode', isDarkMode);
-    setState(() => _isDarkMode = isDarkMode);
+  void setDarkMode(bool isDarkMode) {
+    // Dark mode removed — light only
   }
 
   void _showConnectionSnackbar(BuildContext context) {
@@ -334,50 +327,110 @@ class _MyAppState extends State<MyApp> {
       return MaterialApp(
         title: 'SMO App',
         debugShowCheckedModeBanner: false,
+        theme: AppTheme.themeData,
         home: Scaffold(
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppTheme.primary, AppTheme.primaryVariant],
+                colors: [AppTheme.primary, AppTheme.primaryVariant, Color(0xFF062229)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
+                stops: [0.0, 0.6, 1.0],
               ),
             ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // App Logo
-                  const Icon(
-                    Icons.precision_manufacturing,
-                    size: 80,
-                    color: AppTheme.onPrimary,
-                  ),
-                  const SizedBox(height: 24),
-                  // App Name
-                  const Text(
-                    'SMO System',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.onPrimary,
+            child: Stack(
+              children: [
+                // Decorative circles
+                Positioned(
+                  top: -50, right: -40,
+                  child: Container(
+                    width: 200, height: 200,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.05),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Sewing Machine Operations',
-                    style: TextStyle(fontSize: 16, color: AppTheme.onPrimary),
+                ),
+                Positioned(
+                  bottom: -40, left: -50,
+                  child: Container(
+                    width: 180, height: 180,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.secondary.withValues(alpha: 0.12),
+                    ),
                   ),
-                  const SizedBox(height: 48),
-                  // Simple loading indicator
-                  const CircularProgressIndicator(color: AppTheme.onPrimary),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Loading...',
-                    style: TextStyle(fontSize: 14, color: AppTheme.onPrimary),
+                ),
+                // Center content
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo badge
+                      Container(
+                        width: 110, height: 110,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(28),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.precision_manufacturing,
+                          size: 60,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      const Text(
+                        'SMO System',
+                        style: TextStyle(
+                          fontSize: 34,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Sewing Machine Operations',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.white.withValues(alpha: 0.8),
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 56),
+                      SizedBox(
+                        width: 32, height: 32,
+                        child: CircularProgressIndicator(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          strokeWidth: 3,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                // Footer
+                Positioned(
+                  bottom: 32,
+                  left: 0, right: 0,
+                  child: Center(
+                    child: Text(
+                      'Developed for GramTarang Technologies',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -387,11 +440,9 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'SMO App',
       theme: AppTheme.themeData,
-      darkTheme: AppTheme.darkThemeData,
-      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: ThemeMode.light,
       home: Builder(
         builder: (context) {
-          // Show connection snackbar when app loads
           _showConnectionSnackbar(context);
           return _home ?? LoginScreen(setDarkMode: setDarkMode);
         },

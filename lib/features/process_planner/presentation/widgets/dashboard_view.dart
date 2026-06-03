@@ -632,13 +632,13 @@ class _DashboardViewState extends State<DashboardView> {
                     const Text(
                       'Process Flow Graph',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppTheme.onPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
+                      icon: const Icon(Icons.close, color: AppTheme.onPrimary),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -823,22 +823,16 @@ class _DashboardViewState extends State<DashboardView> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    CustomSnackbar.showError(context, message);
   }
 
   void _showSuccess(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
-    );
+    CustomSnackbar.showSuccess(context, message);
   }
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -846,7 +840,7 @@ class _DashboardViewState extends State<DashboardView> {
           Container(
             width: double.infinity,
             decoration:
-                (dark ? AppTheme.darkCardDecoration : AppTheme.cardDecoration)
+                AppTheme.cardDecoration
                     .copyWith(borderRadius: BorderRadius.circular(12)),
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -860,17 +854,17 @@ class _DashboardViewState extends State<DashboardView> {
                   ),
                   color: AppTheme.primary,
                   child: const Text(
-                    'Add Process Planner',
+                    'Create a New Process Plan',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppTheme.onPrimary,
                       inherit: true,
                     ),
                   ),
                 ),
                 Container(
-                  color: dark ? AppTheme.darkSurface : Colors.white,
+                  color: AppTheme.surface,
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
@@ -881,52 +875,20 @@ class _DashboardViewState extends State<DashboardView> {
                           Expanded(
                             child: Row(
                               children: [
-                                ElevatedButton(
+                                OutlinedButton(
                                   onPressed: _browseFile,
-                                  style: ButtonStyle(
-                                    backgroundColor: WidgetStatePropertyAll(
-                                      dark
-                                          ? AppTheme.darkSurfaceVariant
-                                          : const Color(0xFFF0F2F5),
-                                    ),
-                                    foregroundColor: WidgetStatePropertyAll(
-                                      dark ? Colors.white : Colors.black87,
-                                    ),
-                                    elevation: const WidgetStatePropertyAll(0),
-                                    padding: const WidgetStatePropertyAll(
-                                      EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 8,
-                                      ),
-                                    ),
-                                    shape: WidgetStatePropertyAll(
-                                      RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4),
-                                        side: BorderSide(
-                                          color: dark
-                                              ? Colors.white12
-                                              : Colors.grey.shade300,
-                                        ),
-                                      ),
-                                    ),
-                                    textStyle: const WidgetStatePropertyAll(
-                                      TextStyle(
-                                        inherit: true,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                  style: AppTheme.outlinedButtonStyle.copyWith(
+                                    padding: WidgetStateProperty.all(
+                                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                     ),
                                   ),
                                   child: const Text('Browse File'),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
                                     _selectedFile?.name ?? 'no file selected',
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 12,
-                                    ),
+                                    style: AppTheme.bodySmall.copyWith(color: AppTheme.onSurfaceVariant),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                   ),
@@ -935,32 +897,15 @@ class _DashboardViewState extends State<DashboardView> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          InkWell(
-                            onTap: _isReadingFile ? null : _readFile,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 8,
-                              ),
-                              child: _isReadingFile
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : Text(
-                                      'Read',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        color: dark
-                                            ? Colors.white
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                            ),
+                          TextButton(
+                            onPressed: _isReadingFile ? null : _readFile,
+                            child: _isReadingFile
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Text('Read'),
                           ),
                         ],
                       ),
@@ -968,13 +913,15 @@ class _DashboardViewState extends State<DashboardView> {
                       // Data table
                       Container(
                         constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.5,
+                          maxHeight: _tableHeaders.isEmpty
+                              ? 150
+                              : MediaQuery.of(context).size.height * 0.5,
                         ),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: dark ? Colors.white12 : Colors.grey.shade200,
+                            color: AppTheme.surfaceVariant,
                           ),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: _tableHeaders.isEmpty
                             ? Padding(
@@ -983,19 +930,15 @@ class _DashboardViewState extends State<DashboardView> {
                                   child: Text(
                                     'No data loaded. Please upload and read an Excel file.',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 13,
-                                      inherit: true,
+                                    style: AppTheme.bodySmall.copyWith(
+                                      color: AppTheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ),
                               )
                             : Theme(
                                 data: Theme.of(context).copyWith(
-                                  dividerColor: dark
-                                      ? Colors.white12
-                                      : Colors.grey.shade200,
+                                  dividerColor: AppTheme.surfaceVariant,
                                 ),
                                 child: SingleChildScrollView(
                                   scrollDirection: Axis.vertical,
@@ -1003,23 +946,17 @@ class _DashboardViewState extends State<DashboardView> {
                                     scrollDirection: Axis.horizontal,
                                     child: DataTable(
                                       headingRowColor: WidgetStateProperty.all(
-                                        dark
-                                            ? Colors.white.withValues(
-                                                alpha: 0.05,
-                                              )
-                                            : const Color(0xFFF8F9FA),
+                                        AppTheme.surfaceVariant,
                                       ),
                                       headingTextStyle: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 13,
-                                        color: Colors.black87,
+                                        color: AppTheme.onSurface,
                                         inherit: true,
                                       ),
-                                      dataTextStyle: TextStyle(
+                                      dataTextStyle: const TextStyle(
                                         fontSize: 13,
-                                        color: dark
-                                            ? Colors.white70
-                                            : Colors.black87,
+                                        color: AppTheme.onSurface,
                                         inherit: true,
                                       ),
                                       dataRowMinHeight: 48,
@@ -1033,12 +970,9 @@ class _DashboardViewState extends State<DashboardView> {
                                                 width: 140,
                                                 child: Text(
                                                   h,
-                                                  style: TextStyle(
-                                                    color: dark
-                                                        ? Colors.white
-                                                        : Colors.black87,
+                                                  style: AppTheme.bodySmall.copyWith(
+                                                    color: AppTheme.onSurface,
                                                     fontWeight: FontWeight.bold,
-                                                    fontSize: 12,
                                                   ),
                                                   softWrap: true,
                                                   overflow:
@@ -1064,9 +998,7 @@ class _DashboardViewState extends State<DashboardView> {
                                                       softWrap: true,
                                                       overflow:
                                                           TextOverflow.visible,
-                                                      style: const TextStyle(
-                                                        fontSize: 12,
-                                                      ),
+                                                      style: AppTheme.bodySmall,
                                                     ),
                                                   ),
                                                 ),
@@ -1088,76 +1020,24 @@ class _DashboardViewState extends State<DashboardView> {
                         children: [
                           ElevatedButton(
                             onPressed: _visualizeWorkflow,
-                            style: ButtonStyle(
-                              backgroundColor: const WidgetStatePropertyAll(
-                                Color(0xFF283593),
-                              ),
-                              foregroundColor: const WidgetStatePropertyAll(
-                                Colors.white,
-                              ),
-                              elevation: const WidgetStatePropertyAll(0),
-                              padding: const WidgetStatePropertyAll(
-                                EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                              ),
-                              shape: WidgetStatePropertyAll(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              textStyle: const WidgetStatePropertyAll(
-                                TextStyle(
-                                  inherit: true,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
+                            style: AppTheme.primaryButtonStyle,
                             child: const Text('Visualize'),
                           ),
                           ElevatedButton(
                             onPressed: _isSubmitting ? null : _submitForReview,
-                            style: ButtonStyle(
-                              backgroundColor: const WidgetStatePropertyAll(
-                                Color(0xFF2E7D32),
-                              ),
-                              foregroundColor: const WidgetStatePropertyAll(
-                                Colors.white,
-                              ),
-                              elevation: const WidgetStatePropertyAll(0),
-                              padding: const WidgetStatePropertyAll(
-                                EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                              ),
-                              shape: WidgetStatePropertyAll(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              textStyle: const WidgetStatePropertyAll(
-                                TextStyle(
-                                  inherit: true,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
+                            style: AppTheme.tertiaryButtonStyle,
                             child: _isSubmitting
                                 ? const SizedBox(
                                     width: 18,
                                     height: 18,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Colors.white,
+                                      color: AppTheme.onPrimary,
                                     ),
                                   )
                                 : const Text('Submit for Review'),
                           ),
-                          ElevatedButton(
+                          OutlinedButton(
                             onPressed: () {
                               setState(() {
                                 _selectedFile = null;
@@ -1165,33 +1045,7 @@ class _DashboardViewState extends State<DashboardView> {
                                 _tableRows = [];
                               });
                             },
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStatePropertyAll(
-                                Colors.grey.shade600,
-                              ),
-                              foregroundColor: const WidgetStatePropertyAll(
-                                Colors.white,
-                              ),
-                              elevation: const WidgetStatePropertyAll(0),
-                              padding: const WidgetStatePropertyAll(
-                                EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                              ),
-                              shape: WidgetStatePropertyAll(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              textStyle: const WidgetStatePropertyAll(
-                                TextStyle(
-                                  inherit: true,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
+                            style: AppTheme.outlinedButtonStyle,
                             child: const Text('Cancel'),
                           ),
                         ],

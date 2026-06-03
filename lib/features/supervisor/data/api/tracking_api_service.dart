@@ -45,4 +45,31 @@ class TrackingApiService {
       return {'success': false, 'message': 'Failed to fetch bin info: $e'};
     }
   }
+
+  // Resolve a temp QR to the employee currently mapped to it
+  Future<Map<String, dynamic>?> resolveTempQr(String qrId) async {
+    try {
+      final response = await _dio.get('/api/temp-qr/resolve/$qrId');
+      if (response.statusCode == 200 && response.data != null) {
+        return Map<String, dynamic>.from(response.data);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Assign operation to a temp QR mapping (called after tracking submit)
+  Future<bool> assignOperationToTempQr(String qrId, int operationId, String operationName) async {
+    try {
+      final response = await _dio.put('/api/temp-qr/assign-operation', data: {
+        'qrId': qrId,
+        'operationId': operationId,
+        'operationName': operationName,
+      });
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
 }

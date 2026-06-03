@@ -129,7 +129,6 @@ class _CompleteWorkViewState extends State<CompleteWorkView> {
     TextInputType keyboardType = TextInputType.text,
   }) {
     final controller = Get.find<OperatorController>();
-    final dark = Theme.of(context).brightness == Brightness.dark;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -138,9 +137,7 @@ class _CompleteWorkViewState extends State<CompleteWorkView> {
           child: TextField(
             controller: ctrl,
             keyboardType: keyboardType,
-            decoration: dark
-                ? AppTheme.darkInputDecoration(label)
-                : AppTheme.inputDecoration(label),
+            decoration: AppTheme.inputDecoration(label),
           ),
         ),
         const SizedBox(width: 8),
@@ -165,7 +162,6 @@ class _CompleteWorkViewState extends State<CompleteWorkView> {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<OperatorController>();
-    final dark = Theme.of(context).brightness == Brightness.dark;
 
     return Obx(() {
       return ListView(
@@ -173,9 +169,7 @@ class _CompleteWorkViewState extends State<CompleteWorkView> {
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: dark
-                ? AppTheme.darkCardDecoration
-                : AppTheme.cardDecoration,
+            decoration: AppTheme.cardDecoration,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -218,9 +212,7 @@ class _CompleteWorkViewState extends State<CompleteWorkView> {
                 TextField(
                   controller: _qtyController,
                   keyboardType: TextInputType.number,
-                  decoration: dark
-                      ? AppTheme.darkInputDecoration('Quantity (optional)')
-                      : AppTheme.inputDecoration('Quantity (optional)'),
+                  decoration: AppTheme.inputDecoration('Quantity (optional)'),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(

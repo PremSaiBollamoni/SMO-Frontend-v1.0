@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../data/api/tracking_api_service.dart';
 import '../../domain/models/tracking_model.dart';
 import '../../../../core/utils/api_error_helper.dart';
+import '../../../../core/network/api_client.dart';
 
 class TrackingController extends GetxController {
   final TrackingApiService _apiService = TrackingApiService();
@@ -30,6 +31,14 @@ class TrackingController extends GetxController {
   var currentOperationName = Rx<String?>(null);
   var binInfo = Rx<Map<String, dynamic>?>(null);
 
+  // Temp QR resolution
+  var resolvedEmployeeName = Rx<String?>(null);
+  var resolvedEmployeeId = Rx<int?>(null);
+  var employeeQrId = Rx<String?>(null); // Store the temp QR id for operation assignment later
+
+  // Multi-employee support (NEW)
+  var scannedEmployees = RxList<Map<String, dynamic>>([]); // List of {id, name}
+
   @override
   void onClose() {
     machineQrController.dispose();
@@ -45,10 +54,35 @@ class TrackingController extends GetxController {
     }
   }
 
-  // Set Employee QR from scanner
-  void setEmployeeQr(String code) {
+  // Set Employee QR from scanner — resolves temp QR to employee
+  void setEmployeeQr(String code) async {
     if (code.trim().isNotEmpty) {
       employeeQrController.text = code.trim();
+      // Try to resolve as temp QR
+      await _resolveTempQr(code.trim());
+    }
+  }
+
+  // Resolve temp QR to employee via backend
+  Future<void> _resolveTempQr(String qrId) async {
+    try {
+      final result = await _apiService.resolveTempQr(qrId);
+      if (result != null && result['employeeId'] != null) {
+        resolvedEmployeeName.value = result['employeeName'] as String?;
+        resolvedEmployeeId.value = result['employeeId'] as int?;
+        employeeQrId.value = qrId;
+        print('[TRACKING] Resolved temp QR $qrId → Employee: ${result['employeeName']} (${result['employeeId']})');
+      } else {
+        // Not a temp QR or no active mapping — treat as regular employee QR
+        resolvedEmployeeName.value = null;
+        resolvedEmployeeId.value = null;
+        employeeQrId.value = null;
+      }
+    } catch (e) {
+      // Resolution failed — not a temp QR, that's fine
+      resolvedEmployeeName.value = null;
+      resolvedEmployeeId.value = null;
+      employeeQrId.value = null;
     }
   }
 
@@ -102,8 +136,9 @@ class TrackingController extends GetxController {
       return false;
     }
 
-    if (employeeQrController.text.trim().isEmpty) {
-      _showValidationError('Please scan Employee QR');
+    // Check if at least one employee is added
+    if (scannedEmployees.isEmpty) {
+      _showValidationError('Please add at least one employee');
       return false;
     }
 
@@ -112,62 +147,79 @@ class TrackingController extends GetxController {
       return false;
     }
 
-    if (selectedStatus.value == null || selectedStatus.value!.trim().isEmpty) {
-      _showValidationError('Please select a status');
-      return false;
-    }
+    // Status validation - REMOVED: Auto-detected by backend
+    // Backend determines START/COMPLETE based on whether active assignment exists
 
     return true;
   }
 
   void _showValidationError(String message) {
-    Get.dialog(
-      AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.warning_amber, color: Colors.orange),
-            SizedBox(width: 8),
-            Text('Validation Error'),
+    try {
+      Get.dialog(
+        AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Validation Error'),
+            ],
+          ),
+          content: Text(message),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Get.back(),
+              child: const Text('OK'),
+            ),
           ],
         ),
-        content: Text(message),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Get.back(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+        barrierDismissible: false,
+      );
+    } catch (e) {
+      // Fallback to snackbar if dialog fails
+      Get.snackbar('Error', message, snackPosition: SnackPosition.TOP, backgroundColor: Colors.red, colorText: Colors.white);
+    }
   }
 
   void _showResultDialog(bool success, String title, String message) {
-    Get.dialog(
-      AlertDialog(
-        title: Row(
-          children: [
-            Icon(
-              success ? Icons.check_circle : Icons.error,
-              color: success ? Colors.green : Colors.red,
+    try {
+      Get.dialog(
+        AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                success ? Icons.check_circle : Icons.error,
+                color: success ? Colors.green : Colors.red,
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text(title)),
+            ],
+          ),
+          content: SingleChildScrollView(child: Text(message)),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Get.back(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: success ? Colors.green : Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('OK'),
             ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(title)),
           ],
         ),
-        content: SingleChildScrollView(child: Text(message)),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Get.back(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: success ? Colors.green : Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-      barrierDismissible: false,
-    );
+        barrierDismissible: false,
+      );
+    } catch (e) {
+      // Fallback to snackbar if dialog fails
+      Get.snackbar(
+        title,
+        message,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: success ? Colors.green : Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 5),
+        margin: const EdgeInsets.all(16),
+      );
+    }
   }
 
   // Format ISO timestamp into a readable HH:mm:ss
@@ -181,25 +233,29 @@ class TrackingController extends GetxController {
     }
   }
 
-  // Submit form with enhanced two-phase workflow
+  // Submit form with enhanced two-phase workflow (UPDATED for multi-employee)
   Future<void> submitForm() async {
     if (!validateForm()) return;
 
     try {
       isSubmitting.value = true;
 
+      // Build list of employee IDs from scanned employees
+      List<int> employeeIds = scannedEmployees.map((e) => e['id'] as int).toList();
+
       final tracking = TrackingModel(
         machineQr: machineQrController.text.trim(),
-        employeeQr: employeeQrController.text.trim(),
+        employeeQr: '', // Keep for backward compat
         trayQr: trayQrController.text.trim(),
-        status: selectedStatus.value!,
+        status: 'PENDING', // Default value - backend auto-detects actual status
         supervisorId: 1004, // Default supervisor ID
         operationId: currentOperationId.value, // Include current operation ID
+        employeeIds: employeeIds, // NEW: Pass multi-employee list
       );
 
-      print('[TRACKING_SUBMIT] ═══ TRACKING SUBMISSION START ═══');
+      print('[TRACKING_SUBMIT] ═══ MULTI-EMPLOYEE TRACKING SUBMISSION START ═══');
       print('[TRACKING_SUBMIT] Machine QR: ${tracking.machineQr}');
-      print('[TRACKING_SUBMIT] Employee QR: ${tracking.employeeQr}');
+      print('[TRACKING_SUBMIT] Employee IDs: $employeeIds (${scannedEmployees.length} employees)');
       print('[TRACKING_SUBMIT] Tray QR: ${tracking.trayQr}');
       print('[TRACKING_SUBMIT] Status: ${tracking.status}');
       print('[TRACKING_SUBMIT] Operation ID: ${tracking.operationId}');
@@ -221,22 +277,20 @@ class TrackingController extends GetxController {
         print('[TRACKING_SUBMIT] Workflow Complete: ${responseData['workflowComplete']}');
 
         // Show success message with flow type information
-        String message =
-            responseData['message'] ?? 'Tracking submitted successfully';
+        String message = responseData['message'] ?? 'Tracking submitted successfully';
         String flowType = responseData['flowType'] ?? '';
-
         String title = 'Success';
 
         if (flowType == 'ASSIGNMENT') {
           title = 'Assignment Created';
-          print('[TRACKING_SUBMIT] ✓ ASSIGNMENT FLOW - Worker assigned to machine & tray');
+          print('[TRACKING_SUBMIT] ✓ ASSIGNMENT FLOW - ${employeeIds.length} worker(s) assigned to machine & tray');
           if (responseData['startTime'] != null) {
-            message += '\n\nStarted at: ${_formatTime(responseData['startTime'])}';
+            message += '\n\nTeam: ${scannedEmployees.map((e) => e['name']).join(', ')}\nStarted at: ${_formatTime(responseData['startTime'])}';
             message += '\n(Scan again to complete & see duration)';
           }
         } else if (flowType == 'COMPLETION') {
           title = 'Job Completed';
-          print('[TRACKING_SUBMIT] ✓ COMPLETION FLOW - Job completed');
+          print('[TRACKING_SUBMIT] ✓ COMPLETION FLOW - Job completed by ${employeeIds.length} worker(s)');
 
           // Show duration if available
           if (responseData['durationFormatted'] != null) {
@@ -290,6 +344,10 @@ class TrackingController extends GetxController {
     currentOperationId.value = null;
     currentOperationName.value = null;
     binInfo.value = null;
+    resolvedEmployeeName.value = null;
+    resolvedEmployeeId.value = null;
+    employeeQrId.value = null;
+    scannedEmployees.clear();  // Clear multi-employee list
   }
 
   // Cancel form
@@ -312,5 +370,142 @@ class TrackingController extends GetxController {
         ],
       ),
     );
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════════
+  // MULTI-EMPLOYEE SUPPORT (NEW)
+  // ═════════════════════════════════════════════════════════════════════════════
+
+  /// Add employee from employee QR field (manual entry or pre-scanned)
+  Future<void> addScannedEmployee() async {
+    final qr = employeeQrController.text.trim();
+    if (qr.isEmpty) {
+      Get.snackbar('Error', 'Please enter employee QR', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    try {
+      // Resolve employee ID (could be temp QR like EMP-TEMP-004 or regular ID)
+      int? empId = await _parseAndResolveEmployeeQr(qr);
+      if (empId == null) {
+        Get.snackbar('Error', 'Invalid employee QR: $qr', snackPosition: SnackPosition.BOTTOM);
+        return;
+      }
+
+      // Check if already scanned
+      if (scannedEmployees.any((e) => e['id'] == empId)) {
+        Get.snackbar('Warning', 'Employee already added', snackPosition: SnackPosition.BOTTOM);
+        return;
+      }
+
+      // Fetch employee name
+      String? empName = await _fetchEmployeeName(empId);
+
+      scannedEmployees.add({
+        'id': empId,
+        'name': empName ?? 'Employee $empId',
+        'qr': qr,
+      });
+
+      print('[TRACKING] Employee added: $empId (${empName ?? 'Employee $empId'})');
+      employeeQrController.clear();
+      Get.snackbar('✓ Added', 'Employee $empId added to team', snackPosition: SnackPosition.BOTTOM, duration: const Duration(milliseconds: 800));
+    } catch (e) {
+      print('[TRACKING] Error adding employee: $e');
+      Get.snackbar('Error', 'Failed to add employee: $e', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  /// Add employee from QR scanner (triggered by Scan button)
+  void addScannedEmployeeFromQr(String qr) async {
+    employeeQrController.text = qr.trim();
+    await addScannedEmployee();
+  }
+
+  /// Remove employee from scanned list
+  void removeEmployee(int index) {
+    if (index >= 0 && index < scannedEmployees.length) {
+      scannedEmployees.removeAt(index);
+      Get.snackbar('Removed', 'Employee removed from team', snackPosition: SnackPosition.BOTTOM, duration: const Duration(milliseconds: 800));
+    }
+  }
+
+  /// Parse employee QR and resolve to employee ID
+  /// Supports: plain numeric, EMP_xxxx, EMP-xxxx, EMP-TEMP-xxx (temp QR)
+  Future<int?> _parseAndResolveEmployeeQr(String qr) async {
+    print('[TRACKING] Parsing employee QR: $qr');
+    
+    // Try plain numeric
+    try {
+      int id = int.parse(qr);
+      print('[TRACKING] Parsed as numeric ID: $id');
+      return id;
+    } catch (_) {}
+
+    // Try EMP_xxxx or EMP-xxxx format
+    if (qr.toUpperCase().startsWith('EMP_') || qr.toUpperCase().startsWith('EMP-')) {
+      String suffix = qr.substring(4);
+      try {
+        int id = int.parse(suffix);
+        print('[TRACKING] Parsed as EMP-formatted ID: $id');
+        return id;
+      } catch (_) {}
+    }
+
+    // Try temp QR resolution (EMP-TEMP-xxx format)
+    if (qr.toUpperCase().contains('TEMP')) {
+      try {
+        print('[TRACKING] Attempting to resolve temp QR: $qr');
+        final result = await _apiService.resolveTempQr(qr);
+        if (result != null && result['employeeId'] != null) {
+          int empId = result['employeeId'] as int;
+          print('[TRACKING] Resolved temp QR to employee ID: $empId');
+          return empId;
+        } else {
+          print('[TRACKING] Temp QR resolution returned null or no employeeId');
+          // Fallback: extract numeric part from temp QR (e.g., EMP-TEMP-001 → 1001)
+          try {
+            String numPart = qr.replaceAll(RegExp(r'[^\d]'), '');
+            if (numPart.isNotEmpty) {
+              int fallbackId = int.parse('10' + numPart); // Convert 001 → 10001
+              print('[TRACKING] Using fallback ID from temp QR: $fallbackId');
+              return fallbackId;
+            }
+          } catch (e) {
+            print('[TRACKING] Fallback parsing failed: $e');
+          }
+        }
+      } catch (e) {
+        print('[TRACKING] Temp QR resolution exception: $e');
+        // Still try fallback on exception
+        try {
+          String numPart = qr.replaceAll(RegExp(r'[^\d]'), '');
+          if (numPart.isNotEmpty) {
+            int fallbackId = int.parse('10' + numPart);
+            print('[TRACKING] Using fallback ID after exception: $fallbackId');
+            return fallbackId;
+          }
+        } catch (e2) {
+          print('[TRACKING] Fallback failed: $e2');
+        }
+      }
+    }
+
+    print('[TRACKING] Failed to parse employee QR: $qr');
+    return null;
+  }
+
+  /// Fetch employee name from backend
+  Future<String?> _fetchEmployeeName(int empId) async {
+    try {
+      // Fetch employee details from HR API
+      final response = await ApiClient().dio.get('/api/hr/employees/$empId');
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['name'] as String?;
+      }
+    } catch (e) {
+      print('[TRACKING] Error fetching employee name for ID $empId: $e');
+    }
+    return null; // Return null if fetch fails, will use "Employee {id}" as fallback
   }
 }

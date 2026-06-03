@@ -40,12 +40,10 @@ class AccessDeniedScreen extends StatelessWidget {
           ),
         ),
         child: Center(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Container(
-              decoration: Theme.of(context).brightness == Brightness.dark
-                  ? AppTheme.darkCardDecoration
-                  : AppTheme.cardDecoration,
+              decoration: AppTheme.cardDecoration,
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
                 child: Column(
@@ -59,9 +57,7 @@ class AccessDeniedScreen extends StatelessWidget {
                     Text(
                       'Access Denied',
                       style: AppTheme.headlineLarge.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppTheme.darkOnSurface
-                            : AppTheme.onSurface,
+                        color: AppTheme.onSurface,
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -72,9 +68,7 @@ class AccessDeniedScreen extends StatelessWidget {
                     Text(
                       message,
                       style: AppTheme.bodyLarge.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppTheme.darkOnSurfaceVariant
-                            : AppTheme.onSurfaceVariant,
+                        color: AppTheme.onSurfaceVariant,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -85,9 +79,7 @@ class AccessDeniedScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? AppTheme.darkSurfaceVariant
-                              : AppTheme.surfaceVariant,
+                          color: AppTheme.surfaceVariant,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -98,10 +90,7 @@ class AccessDeniedScreen extends StatelessWidget {
                               style: AppTheme.bodyMedium.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? AppTheme.darkOnSurface
-                                    : AppTheme.onSurface,
+                                    AppTheme.onSurface,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -109,10 +98,7 @@ class AccessDeniedScreen extends StatelessWidget {
                               'Activities: ${activities?.isEmpty ?? true ? "None assigned" : activities}',
                               style: AppTheme.bodySmall.copyWith(
                                 color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? AppTheme.darkOnSurfaceVariant
-                                    : AppTheme.onSurfaceVariant,
+                                    AppTheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -125,9 +111,7 @@ class AccessDeniedScreen extends StatelessWidget {
                     Text(
                       'Please contact your HR department or system administrator to get the necessary permissions assigned to your role.',
                       style: AppTheme.bodyMedium.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? AppTheme.darkOnSurfaceVariant
-                            : AppTheme.onSurfaceVariant,
+                        color: AppTheme.onSurfaceVariant,
                       ),
                       textAlign: TextAlign.center,
                     ),

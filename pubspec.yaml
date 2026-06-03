@@ -23,6 +23,7 @@ dependencies:
   get: ^4.6.6
   multicast_dns: ^0.3.2+7
   path_provider: ^2.1.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:

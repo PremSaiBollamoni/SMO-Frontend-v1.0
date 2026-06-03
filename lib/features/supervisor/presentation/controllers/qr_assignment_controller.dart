@@ -123,6 +123,13 @@ class QrAssignmentController extends GetxController {
     }
   }
 
+  // Set tray quantity directly (from manual input)
+  void setTrayQuantity(int qty) {
+    if (qty >= 1) {
+      trayQuantity.value = qty;
+    }
+  }
+
   // Set QR code from scanner
   void setQrCode(String code) {
     if (code.trim().isNotEmpty) {

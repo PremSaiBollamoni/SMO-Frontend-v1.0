@@ -100,15 +100,18 @@ class HrApiService {
   }
 
   /// Create a new employee
-  /// Endpoint: POST /api/hr/employees
+  /// Endpoint: POST /api/hr/employees?actorEmpId={empId}
   /// Request body: CreateEmployeeRequest.toJson()
   Future<Map<String, dynamic>> createEmployee(
     CreateEmployeeRequest request,
   ) async {
     try {
+      // Get the current empId from ApiClient for actorEmpId
+      final actorEmpId = ApiClient().getEmpId() ?? '1001';
       final response = await _dio.post(
         ApiEndpoints.hrEmployees,
         data: request.toJson(),
+        queryParameters: {QueryParams.actorEmpId: actorEmpId},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

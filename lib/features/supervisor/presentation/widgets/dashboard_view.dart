@@ -11,7 +11,6 @@ class DashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<SupervisorController>();
-    final dark = Theme.of(context).brightness == Brightness.dark;
 
     return Obx(() {
       final insights = controller.floorInsights.value;
@@ -23,7 +22,6 @@ class DashboardView extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: [
             _buildCard(
-              dark,
               Row(
                 children: [
                   Expanded(
@@ -46,15 +44,11 @@ class DashboardView extends StatelessWidget {
                 ),
               )
             else if (insights == null)
-              _buildCard(
-                dark,
-                Text('No data. Pull to refresh.', style: AppTheme.bodyLarge),
+              _buildCard(Text('No data. Pull to refresh.', style: AppTheme.bodyLarge),
               )
             else ...[
               // Real WIP Stats Section
-              _buildCard(
-                dark,
-                Column(
+              _buildCard(Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Real WIP Statistics', style: AppTheme.titleLarge),
@@ -77,9 +71,7 @@ class DashboardView extends StatelessWidget {
               ),
               
               // WIP Trend Chart
-              _buildCard(
-                dark,
-                Column(
+              _buildCard(Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('WIP Trend', style: AppTheme.titleLarge),
@@ -93,9 +85,7 @@ class DashboardView extends StatelessWidget {
               ),
               
               // Status Distribution Chart
-              _buildCard(
-                dark,
-                Column(
+              _buildCard(Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Production Status', style: AppTheme.titleLarge),
@@ -109,9 +99,7 @@ class DashboardView extends StatelessWidget {
               ),
               
               // Line Balancing Section
-              _buildCard(
-                dark,
-                Column(
+              _buildCard(Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Line Balancing', style: AppTheme.titleLarge),
@@ -141,9 +129,7 @@ class DashboardView extends StatelessWidget {
               ),
               
               // AI Insights Section
-              _buildCard(
-                dark,
-                Column(
+              _buildCard(Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('AI Insights', style: AppTheme.titleLarge),
@@ -159,11 +145,11 @@ class DashboardView extends StatelessWidget {
     });
   }
 
-  Widget _buildCard(bool dark, Widget child) {
+  Widget _buildCard(Widget child) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: dark ? AppTheme.darkCardDecoration : AppTheme.cardDecoration,
+      decoration: AppTheme.cardDecoration,
       child: Padding(padding: const EdgeInsets.all(16), child: child),
     );
   }

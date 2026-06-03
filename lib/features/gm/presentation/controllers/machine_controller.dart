@@ -61,6 +61,39 @@ class MachineController extends GetxController {
     }
   }
 
+  Future<void> createMachineWithQr(String qrCode) async {
+    if (machineNameController.text.trim().isEmpty ||
+        machineTypeController.text.trim().isEmpty) {
+      showMessage('Please fill all required fields', isError: true);
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      // Use the full QR string as the machine ID
+      final machine = MachineModel(
+        machineId: qrCode.trim(),
+        machineName: machineNameController.text.trim(),
+        machineType: machineTypeController.text.trim(),
+        status: selectedStatus.value,
+      );
+
+      final response = await _apiService.createMachine(machine);
+
+      if (response['success'] == true) {
+        showMessage(response['message'] ?? 'Machine created successfully');
+        clearForm();
+        fetchMachines();
+      } else {
+        showMessage(response['message'] ?? 'Failed to create machine', isError: true);
+      }
+    } catch (e) {
+      showMessage('Error creating machine: ${e.toString()}', isError: true);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> createMachine() async {
     if (machineNameController.text.trim().isEmpty ||
         machineTypeController.text.trim().isEmpty) {
@@ -92,7 +125,7 @@ class MachineController extends GetxController {
     }
   }
 
-  Future<void> updateMachine(int id) async {
+  Future<void> updateMachine(String id) async {
     if (machineNameController.text.trim().isEmpty ||
         machineTypeController.text.trim().isEmpty) {
       showMessage('Please fill all required fields', isError: true);
@@ -124,7 +157,7 @@ class MachineController extends GetxController {
     }
   }
 
-  Future<void> deleteMachine(int id) async {
+  Future<void> deleteMachine(String id) async {
     try {
       isLoading.value = true;
       final response = await _apiService.deleteMachine(id);

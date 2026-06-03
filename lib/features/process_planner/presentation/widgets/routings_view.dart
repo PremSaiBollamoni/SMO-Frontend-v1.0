@@ -41,9 +41,7 @@ class RoutingsView extends StatelessWidget {
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: Theme.of(context).brightness == Brightness.dark
-          ? AppTheme.darkCardDecoration
-          : AppTheme.cardDecoration,
+      decoration: AppTheme.cardDecoration,
       child: Row(
         children: [
           Expanded(
@@ -70,16 +68,16 @@ class RoutingsView extends StatelessWidget {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.route_outlined, size: 64, color: Colors.grey.shade400),
+            const Icon(Icons.route_outlined, size: 64, color: AppTheme.onSurfaceVariant),
             const SizedBox(height: 16),
             Text(
               'No routings yet',
-              style: AppTheme.bodyLarge.copyWith(color: Colors.grey.shade600),
+              style: AppTheme.bodyLarge.copyWith(color: AppTheme.onSurfaceVariant),
             ),
             const SizedBox(height: 8),
             Text(
               'Tap the + button to create your first routing',
-              style: AppTheme.bodySmall.copyWith(color: Colors.grey.shade500),
+              style: AppTheme.bodySmall.copyWith(color: AppTheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -88,12 +86,10 @@ class RoutingsView extends StatelessWidget {
   }
 
   Widget _buildRoutingCard(BuildContext context, dynamic routing) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: dark ? AppTheme.darkCardDecoration : AppTheme.cardDecoration,
+      decoration: AppTheme.cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -130,7 +126,7 @@ class RoutingsView extends StatelessWidget {
   }
 
   Widget _buildStatusChip(String status) {
-    final color = status.toUpperCase() == 'ACTIVE' ? Colors.green : Colors.grey;
+    final color = status.toUpperCase() == 'ACTIVE' ? AppTheme.success : AppTheme.onSurfaceVariant;
     return Chip(
       label: Text(
         status,

@@ -382,7 +382,29 @@ class EmployeesView extends StatelessWidget {
           // Employee list
           Expanded(
             child: filteredEmployees.isEmpty
-                ? const Center(child: Text('No employees found'))
+                ? SingleChildScrollView(
+                    child: Center(
+                      child: Container(
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(24),
+                        decoration: AppTheme.cardDecoration,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.people_outline, size: 48, color: AppTheme.onSurfaceVariant),
+                            const SizedBox(height: 12),
+                            Text('No employees found', style: AppTheme.titleMedium),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Try adjusting your search or filters',
+                              style: AppTheme.bodySmall.copyWith(color: AppTheme.onSurfaceVariant),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.only(
                       left: 16,

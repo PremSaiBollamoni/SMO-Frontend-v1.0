@@ -219,32 +219,34 @@ class _QrScanDialogState extends State<QrScanDialog> {
       content: SizedBox(
         width: 400,
         height: 500,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Camera Scanner
-            if (useCameraScanner && !needsEmployeeSelection)
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppTheme.primary),
-                    borderRadius: BorderRadius.circular(8),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Camera Scanner
+              if (useCameraScanner && !needsEmployeeSelection)
+                SizedBox(
+                  height: 300,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppTheme.primary),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: MobileScanner(
+                      controller: mobileScannerController,
+                      onDetect: _onDetect,
+                    ),
                   ),
-                  child: MobileScanner(
-                    controller: mobileScannerController,
-                    onDetect: _onDetect,
-                  ),
+                )
+              else
+                // Manual Input
+                TextField(
+                  controller: qrController,
+                  decoration: AppTheme.inputDecoration('Enter QR Code'),
+                  enabled: !needsEmployeeSelection,
+                  autofocus: true,
                 ),
-              )
-            else
-              // Manual Input
-              TextField(
-                controller: qrController,
-                decoration: AppTheme.inputDecoration('Enter QR Code'),
-                enabled: !needsEmployeeSelection,
-                autofocus: true,
-              ),
             
             const SizedBox(height: 12),
             
@@ -271,6 +273,7 @@ class _QrScanDialogState extends State<QrScanDialog> {
             ],
           ],
         ),
+      ),
       ),
       actions: [
         TextButton(
@@ -325,6 +328,11 @@ class _QrScanDialogState extends State<QrScanDialog> {
     if (availableEmployees.isEmpty) {
       return const Text('No employees available (all checked in)');
     }
+
+    // Reset selectedEmployee if it's no longer in the available list
+    final validSelection = selectedEmployee != null &&
+        availableEmployees.any((e) => e.empId == selectedEmployee!.empId);
+    final effectiveSelection = validSelection ? selectedEmployee : null;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,7 +346,7 @@ class _QrScanDialogState extends State<QrScanDialog> {
         const SizedBox(height: 8),
         // Dropdown
         DropdownButtonFormField<EmployeeModel>(
-          value: selectedEmployee,
+          value: effectiveSelection,
           decoration: AppTheme.inputDecoration('Select Employee'),
           isExpanded: true,
           items: availableEmployees.map((emp) {

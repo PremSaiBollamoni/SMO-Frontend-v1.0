@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'models.dart';
 import 'core/theme/app_theme.dart';
+import 'core/config/app_config.dart';
 import 'features/hr/presentation/screens/hr_dashboard_screen.dart';
 import 'features/operator/presentation/screens/operator_screen.dart';
 import 'features/store/presentation/screens/store_screen.dart';
@@ -12,6 +13,7 @@ import 'purchase_workspace.dart';
 import 'features/supervisor/presentation/screens/supervisor_screen.dart';
 import 'gm_workspace.dart';
 import 'features/process_planner/presentation/screens/process_planner_screen.dart';
+import 'features/inventory/presentation/screens/inventory_manager_screen.dart';
 import 'core/network/api_client.dart';
 import 'access_denied_screen.dart';
 import 'role_picker_screen.dart';
@@ -307,6 +309,17 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
 
+    // Inventory Manager
+    if (activityList.contains('INVENTORY_VIEW_DASHBOARD') ||
+        activityList.contains('INVENTORY_MANAGE_STOCK_LIMITS')) {
+      return InventoryManagerScreen(
+        empId: empId,
+        employeeName: employeeName,
+        role: role,
+        activities: activityList,
+      );
+    }
+
     // No matching activity found - deny access
     return AccessDeniedScreen(
       message: 'Your role does not have permission to access any screens.',
@@ -326,163 +339,227 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // The Scaffold is the base for a screen in Flutter
+    final size = MediaQuery.of(context).size;
     return Scaffold(
-      // The Container with BoxDecoration creates the background gradient
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppTheme.primary, AppTheme.primaryVariant],
+            colors: [AppTheme.primary, AppTheme.primaryVariant, Color(0xFF062229)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
+            stops: [0.0, 0.6, 1.0],
           ),
         ),
-        child: SingleChildScrollView(
-          // Make the entire screen scrollable to avoid jumps
-          child: SizedBox(
-            // Set exact height to physical screen size to keep alignment fixed
-            height: MediaQuery.of(context).size.height,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Container(
-                  decoration: Theme.of(context).brightness == Brightness.dark
-                      ? AppTheme.darkCardDecoration
-                      : AppTheme.cardDecoration,
+        child: Stack(
+          children: [
+            // Decorative circles
+            Positioned(
+              top: -60,
+              right: -40,
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.05),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 80,
+              left: -60,
+              child: Container(
+                width: 160,
+                height: 160,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.secondary.withValues(alpha: 0.12),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -50,
+              right: -30,
+              child: Container(
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.04),
+                ),
+              ),
+            ),
+            // Main content
+            SafeArea(
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: size.height - MediaQuery.of(context).padding.vertical),
                   child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize
-                            .min, // To make the card wrap its content
-                        crossAxisAlignment: CrossAxisAlignment
-                            .stretch, // Makes children fill the width
-                        children: [
-                          // App logo or icon
-                          const Icon(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Brand header
+                        Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
                             Icons.precision_manufacturing,
-                            size: 64,
+                            size: 48,
                             color: AppTheme.primary,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            "SMO System",
-                            textAlign: TextAlign.center,
-                            style: AppTheme.headlineLarge.copyWith(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? AppTheme.darkOnSurface
-                                  : AppTheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          "SMO System",
+                          textAlign: TextAlign.center,
+                          style: AppTheme.displaySmall.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Sewing Machine Operations",
-                            textAlign: TextAlign.center,
-                            style: AppTheme.titleLarge.copyWith(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? AppTheme.darkOnSurfaceVariant
-                                  : AppTheme.onSurfaceVariant,
-                            ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Sewing Machine Operations",
+                          textAlign: TextAlign.center,
+                          style: AppTheme.bodyMedium.copyWith(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            letterSpacing: 0.3,
                           ),
-                          const SizedBox(height: 32),
-                          Text(
-                            "Welcome Back",
-                            textAlign: TextAlign.center,
-                            style: AppTheme.headlineMedium.copyWith(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? AppTheme.darkOnSurface
-                                  : AppTheme.onSurface,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        ),
+                        const SizedBox(height: 36),
+                        // Login card
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.surface,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 30,
+                                offset: const Offset(0, 12),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Sign in to continue",
-                            textAlign: TextAlign.center,
-                            style: AppTheme.bodyLarge.copyWith(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? AppTheme.darkOnSurfaceVariant
-                                  : AppTheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          // Employee ID field with validation
-                          TextFormField(
-                            controller: _usernameController,
-                            validator: _validateUsername,
-                            keyboardType: TextInputType.number,
-                            decoration:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? AppTheme.darkInputDecoration("Employee ID")
-                                : AppTheme.inputDecoration("Employee ID"),
-                          ),
-                          const SizedBox(height: 16),
-                          // Password field with validation
-                          TextFormField(
-                            controller: _passwordController,
-                            validator: _validatePassword,
-                            obscureText: _obscurePassword,
-                            decoration:
-                                (Theme.of(context).brightness == Brightness.dark
-                                        ? AppTheme.darkInputDecoration(
-                                            "Password",
-                                          )
-                                        : AppTheme.inputDecoration("Password"))
-                                    .copyWith(
+                          child: Padding(
+                            padding: const EdgeInsets.all(28.0),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    "Welcome Back",
+                                    style: AppTheme.headlineMedium.copyWith(
+                                      color: AppTheme.onSurface,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    "Sign in to continue to your workspace",
+                                    style: AppTheme.bodyMedium.copyWith(
+                                      color: AppTheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 28),
+                                  // Employee ID field
+                                  TextFormField(
+                                    controller: _usernameController,
+                                    validator: _validateUsername,
+                                    keyboardType: TextInputType.number,
+                                    decoration: AppTheme.inputDecoration("Employee ID").copyWith(
+                                      prefixIcon: const Icon(Icons.badge_outlined, color: AppTheme.primary),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  // Password field
+                                  TextFormField(
+                                    controller: _passwordController,
+                                    validator: _validatePassword,
+                                    obscureText: _obscurePassword,
+                                    decoration: AppTheme.inputDecoration("Password").copyWith(
+                                      prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.primary),
                                       suffixIcon: IconButton(
                                         icon: Icon(
-                                          _obscurePassword
-                                              ? Icons.visibility_off
-                                              : Icons.visibility,
+                                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                          color: AppTheme.onSurfaceVariant,
                                         ),
                                         onPressed: () {
                                           setState(() {
-                                            _obscurePassword =
-                                                !_obscurePassword;
+                                            _obscurePassword = !_obscurePassword;
                                           });
                                         },
                                       ),
                                     ),
-                          ),
-                          const SizedBox(height: 24),
-                          // The Button is now an ElevatedButton
-                          ElevatedButton(
-                            onPressed: _isLoading ? null : _performLogin,
-                            style: AppTheme.primaryButtonStyle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: _isLoading
-                                  ? const CircularProgressIndicator(
-                                      color: AppTheme.onPrimary,
-                                    )
-                                  : Text(
-                                      "LOGIN",
-                                      style: AppTheme.labelLarge.copyWith(
-                                        color: AppTheme.onPrimary,
-                                        fontWeight: FontWeight.bold,
+                                    onFieldSubmitted: (_) => _isLoading ? null : _performLogin(),
+                                  ),
+                                  const SizedBox(height: 28),
+                                  // Login button
+                                  SizedBox(
+                                    height: 54,
+                                    child: ElevatedButton(
+                                      onPressed: _isLoading ? null : _performLogin,
+                                      style: AppTheme.primaryButtonStyle.copyWith(
+                                        elevation: WidgetStateProperty.all(4),
                                       ),
+                                      child: _isLoading
+                                          ? const SizedBox(
+                                              width: 24, height: 24,
+                                              child: CircularProgressIndicator(
+                                                color: AppTheme.onPrimary,
+                                                strokeWidth: 2.5,
+                                              ),
+                                            )
+                                          : Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  "Sign In",
+                                                  style: AppTheme.labelLarge.copyWith(
+                                                    color: AppTheme.onPrimary,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                const Icon(Icons.arrow_forward, size: 20),
+                                              ],
+                                            ),
                                     ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          "Version $appVersion | GramTarang Technologies",
+                          style: AppTheme.bodySmall.copyWith(
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

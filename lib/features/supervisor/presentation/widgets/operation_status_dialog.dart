@@ -47,6 +47,7 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
   }
 
   void _startAutoRefresh() {
+    // Fetch fresh data from backend every 15 seconds only
     _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       _loadOperationStatus();
     });
@@ -271,6 +272,10 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
                             _buildStatusDetails(dark),
                             const SizedBox(height: 24),
 
+                            // Bundle-wise Timing (SAM continuous tracking)
+                            _buildBundleWiseTiming(dark),
+                            const SizedBox(height: 24),
+
                             // Action Buttons
                             _buildActionButtons(),
                           ],
@@ -285,27 +290,43 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
   Widget _buildKPISummary(bool dark) {
     final status = _operationStatus!['status'] ?? 'PENDING';
     final activeBins = _operationStatus!['active_bins'] ?? 0;
-    final wipQuantity = _operationStatus!['wip_quantity'] ?? 0;
     final completedQuantity = _operationStatus!['completed_quantity'] ?? 0;
+    final trayQuantity = _operationStatus!['tray_quantity'] ?? 0;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.blue.shade700,
-        borderRadius: BorderRadius.circular(8),
+        gradient: const LinearGradient(
+          colors: [AppTheme.primary, AppTheme.primaryVariant],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: _buildKPICard('Status', status, dark),
+          Row(
+            children: [
+              Expanded(
+                child: _buildKPICard('Status', status, dark),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildKPICard('Active Bins', activeBins.toString(), dark),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildKPICard('Active Bins', activeBins.toString(), dark),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildKPICard('Completed', completedQuantity.toString(), dark),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildKPICard('Tray Qty', trayQuantity.toString(), dark),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildKPICard('Completed', completedQuantity.toString(), dark),
+              ),
+            ],
           ),
         ],
       ),
@@ -313,11 +334,17 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
   }
 
   Widget _buildKPICard(String label, String value, bool dark) {
+    // Format status text to be readable
+    String displayValue = value;
+    if (value == 'IN_PROGRESS') displayValue = 'In Progress';
+    if (value == 'PENDING') displayValue = 'Pending';
+    if (value == 'COMPLETED') displayValue = 'Completed';
+
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(4),
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,12 +358,16 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              displayValue,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -345,117 +376,14 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
   }
 
   Widget _buildProgressStrip(bool dark) {
-    final status = _operationStatus!['status'] ?? 'PENDING';
-    final activeBins = _operationStatus!['active_bins'] ?? 0;
-    final activeOperators = _operationStatus!['active_operators'] ?? 0;
-    final lastAction = _operationStatus!['last_action'] ?? 'None';
-    final lastActionTime = _formatTimestamp(_operationStatus!['last_action_time']);
-
-    // Calculate progress percentage
-    double progressPercent = 0.0;
-    Color progressColor = Colors.grey;
-
-    if (status == 'PENDING') {
-      progressPercent = 0.0;
-      progressColor = Colors.red;
-    } else if (status == 'IN_PROGRESS') {
-      progressPercent = 50.0;
-      progressColor = Colors.orange;
-    } else if (status == 'COMPLETED') {
-      progressPercent = 100.0;
-      progressColor = Colors.green;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: dark ? AppTheme.darkSurface : Colors.grey.shade50,
-        border: Border.all(
-          color: dark ? Colors.white12 : Colors.grey.shade200,
-        ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Operation Progress',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: progressColor,
-                ),
-              ),
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.people, size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        '$activeOperators operators',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade700,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progressPercent / 100,
-              minHeight: 8,
-              backgroundColor: dark ? Colors.white12 : Colors.grey.shade300,
-              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Last Action: $lastAction',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              Text(
-                lastActionTime,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    // Empty - we moved bundle progress into bundle-wise timing section
+    return const SizedBox.shrink();
   }
 
   Widget _buildStatusDetails(bool dark) {
     final description = _operationStatus!['description'] ?? widget.operationDescription;
     final estimatedTime = _operationStatus!['estimated_time'] ?? 'N/A';
     final nextOperation = _operationStatus!['next_operation'] ?? 'N/A';
-    final actualStart = _formatTimestamp(_operationStatus!['actual_start_time']);
-    final actualEnd = _operationStatus!['actual_end_time'] == 'In progress...'
-        ? 'In progress...'
-        : _formatTimestamp(_operationStatus!['actual_end_time']);
-    final actualDuration = _operationStatus!['actual_duration'] ?? 'N/A';
-
-    final hasActualTiming = actualStart != 'N/A';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -483,31 +411,6 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
           _buildDetailRow('Est. Time', estimatedTime),
           const SizedBox(height: 8),
           _buildDetailRow('Next Operation', nextOperation),
-          if (hasActualTiming) ...[
-            const SizedBox(height: 12),
-            Divider(color: dark ? Colors.white12 : Colors.grey.shade300, height: 1),
-            const SizedBox(height: 12),
-            Text(
-              'Actual Timing',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: Colors.teal.shade700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _buildDetailRow('Start Time', actualStart),
-            const SizedBox(height: 8),
-            _buildDetailRow('End Time', actualEnd),
-            const SizedBox(height: 8),
-            _buildDetailRow(
-              'Duration',
-              actualDuration,
-              valueColor: actualDuration.contains('ongoing')
-                  ? Colors.orange
-                  : Colors.teal.shade700,
-            ),
-          ],
         ],
       ),
     );
@@ -537,39 +440,12 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
     }
   }
 
-  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 100,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: valueColor,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildActionButtons() {
     final status = _operationStatus!['status'] ?? 'PENDING';
     final canQrAssign = status == 'PENDING' || status == 'IN_PROGRESS';
-    final canTrack = status == 'IN_PROGRESS';
+    // Allow tracking at all times (PENDING, IN_PROGRESS, COMPLETED) for SAM tracking model
+    // Operators can scan multiple times at same operation for different batches
+    final canTrack = status == 'PENDING' || status == 'IN_PROGRESS' || status == 'COMPLETED';
     final canMerge = status == 'IN_PROGRESS';
 
     return Column(
@@ -624,16 +500,340 @@ class _OperationStatusDialogState extends State<OperationStatusDialog> {
     required bool enabled,
     required VoidCallback onPressed,
   }) {
-    return ElevatedButton.icon(
+    return ElevatedButton(
       onPressed: enabled ? onPressed : null,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
       style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        backgroundColor: enabled ? AppTheme.primary : Colors.grey.shade300,
-        foregroundColor: enabled ? Colors.white : Colors.grey.shade600,
-        disabledBackgroundColor: Colors.grey.shade300,
-        disabledForegroundColor: Colors.grey.shade600,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        backgroundColor: enabled ? AppTheme.primary : AppTheme.surfaceVariant,
+        foregroundColor: enabled ? Colors.white : AppTheme.onSurfaceVariant,
+        disabledBackgroundColor: AppTheme.surfaceVariant,
+        disabledForegroundColor: AppTheme.onSurfaceVariant,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: valueColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Bundle-wise timing for SAM continuous tracking model
+  Widget _buildBundleWiseTiming(bool dark) {
+    final bundles = _operationStatus!['bundles'] as List? ?? [];
+    if (bundles.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: dark ? AppTheme.darkSurface : Colors.grey.shade50,
+        border: Border.all(
+          color: dark ? Colors.white12 : Colors.grey.shade200,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Bundle-wise Timing (${bundles.length} bundles)',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: AppTheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...bundles.asMap().entries.map((e) {
+            final idx = e.key + 1;
+            final bundle = e.value as Map<String, dynamic>;
+            final startTime = bundle['start_time'] ?? 'N/A';
+            final endTime = bundle['end_time'] ?? 'N/A';
+            final qty = bundle['quantity'] ?? 0;
+            final status = bundle['status'] ?? 'PENDING';
+
+            // Color based on status
+            Color statusColor = Colors.grey;
+            if (status == 'PENDING') statusColor = Colors.orange;
+            if (status == 'COMPLETED' || status == 'Completed') statusColor = Colors.green;
+
+            // Calculate progress based on status
+            double progress;
+            if (status == 'COMPLETED' || status == 'Completed') {
+              progress = 1.0;
+            } else if (endTime == 'N/A' || endTime == 'In progress...') {
+              progress = 0.5; // In progress
+            } else {
+              progress = 0.0; // Pending
+            }
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.08),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Bundle $idx',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: statusColor,
+                          ),
+                        ),
+                        Text(
+                          status,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 10,
+                            color: statusColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Progress bar
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 5,
+                        backgroundColor: statusColor.withValues(alpha: 0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Employee, machine, and tray info
+                    if (bundle['operator_id'] != null) ...[
+                      Row(
+                        children: [
+                          Icon(Icons.person, size: 14, color: Colors.grey.shade600),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'Operator: ${bundle['operator_name'] ?? 'ID ${bundle['operator_id']}'}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    if (bundle['machine_qr'] != null) ...[
+                      Row(
+                        children: [
+                          Icon(Icons.precision_manufacturing, size: 14, color: Colors.grey.shade600),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Machine: ${bundle['machine_qr']}',
+                            style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    if (bundle['tray_qr'] != null) ...[
+                      Row(
+                        children: [
+                          Icon(Icons.inbox, size: 14, color: Colors.grey.shade600),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Tray: ${bundle['tray_qr']}',
+                            style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    Text(
+                      'Qty: $qty pieces',
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Start Time: $startTime',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'End Time: $endTime',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    // Live duration widget - updates independently without rebuilding whole dialog
+                    _LiveDurationWidget(
+                      key: ValueKey('duration_${bundle['wip_id']}_$idx'),
+                      startTime: startTime,
+                      endTime: endTime,
+                      completedDuration: bundle['duration'] ?? 'N/A',
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+}
+
+
+/// Separate widget that updates duration in real-time without rebuilding parent
+class _LiveDurationWidget extends StatefulWidget {
+  final String startTime;
+  final String endTime;
+  final String completedDuration;
+
+  const _LiveDurationWidget({
+    Key? key,
+    required this.startTime,
+    required this.endTime,
+    required this.completedDuration,
+  }) : super(key: key);
+
+  @override
+  State<_LiveDurationWidget> createState() => _LiveDurationWidgetState();
+}
+
+class _LiveDurationWidgetState extends State<_LiveDurationWidget> {
+  Timer? _timer;
+  String _duration = '';
+  Color _color = Colors.grey;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateDuration();
+    
+    // Only start timer if ongoing
+    if (widget.endTime == 'N/A' || widget.endTime == 'In progress...') {
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted) {
+          _updateDuration();
+        }
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(_LiveDurationWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Restart timer if status changed from completed to ongoing
+    if (oldWidget.endTime != widget.endTime) {
+      _timer?.cancel();
+      if (widget.endTime == 'N/A' || widget.endTime == 'In progress...') {
+        _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+          if (mounted) {
+            _updateDuration();
+          }
+        });
+      }
+      _updateDuration();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _updateDuration() {
+    if (widget.endTime == 'N/A' || widget.endTime == 'In progress...') {
+      // Ongoing - calculate live duration
+      try {
+        final start = DateTime.parse(widget.startTime.replaceAll(' ', 'T'));
+        final now = DateTime.now();
+        final elapsed = now.difference(start);
+        
+        final hours = elapsed.inHours;
+        final minutes = elapsed.inMinutes.remainder(60);
+        final seconds = elapsed.inSeconds.remainder(60);
+        
+        setState(() {
+          if (hours > 0) {
+            _duration = '${hours}h ${minutes}m ${seconds}s (ongoing)';
+          } else if (minutes > 0) {
+            _duration = '${minutes}m ${seconds}s (ongoing)';
+          } else {
+            _duration = '${seconds}s (ongoing)';
+          }
+          _color = Colors.orange;
+        });
+      } catch (e) {
+        setState(() {
+          _duration = 'Ongoing';
+          _color = Colors.orange;
+        });
+      }
+    } else {
+      // Completed - use provided duration
+      setState(() {
+        _duration = widget.completedDuration;
+        _color = Colors.teal.shade700;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'Duration: $_duration',
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: _color,
       ),
     );
   }

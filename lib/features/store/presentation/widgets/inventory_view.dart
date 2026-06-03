@@ -10,7 +10,6 @@ class InventoryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<StoreController>();
-    final dark = Theme.of(context).brightness == Brightness.dark;
 
     return Obx(() {
       return RefreshIndicator(
@@ -20,9 +19,7 @@ class InventoryView extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: dark
-                  ? AppTheme.darkCardDecoration
-                  : AppTheme.cardDecoration,
+              decoration: AppTheme.cardDecoration,
               child: Row(
                 children: [
                   Expanded(
@@ -48,11 +45,21 @@ class InventoryView extends StatelessWidget {
               )
             else if (controller.inventory.isEmpty)
               Container(
-                padding: const EdgeInsets.all(16),
-                decoration: dark
-                    ? AppTheme.darkCardDecoration
-                    : AppTheme.cardDecoration,
-                child: Text('No data found.', style: AppTheme.bodyLarge),
+                padding: const EdgeInsets.all(32),
+                decoration: AppTheme.cardDecoration,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.inventory_2_outlined, size: 64, color: AppTheme.onSurfaceVariant),
+                    const SizedBox(height: 16),
+                    Text('No inventory data', style: AppTheme.titleLarge),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Pull to refresh',
+                      style: AppTheme.bodyMedium.copyWith(color: AppTheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
               )
             else
               ...controller.inventory.map(
@@ -60,9 +67,7 @@ class InventoryView extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: dark
-                        ? AppTheme.darkCardDecoration
-                        : AppTheme.cardDecoration,
+                    decoration: AppTheme.cardDecoration,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -73,10 +78,10 @@ class InventoryView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text('Item ID: ${item.itemId ?? '-'}'),
-                        Text('Qty: ${item.qty ?? '-'}'),
-                        Text('Location: ${item.location ?? '-'}'),
-                        Text('Batch: ${item.batch ?? '-'}'),
+                        Text('Item ID: ${item.itemId ?? '-'}', style: AppTheme.bodyMedium),
+                        Text('Qty: ${item.qty ?? '-'}', style: AppTheme.bodyMedium),
+                        Text('Location: ${item.location ?? '-'}', style: AppTheme.bodyMedium),
+                        Text('Batch: ${item.batch ?? '-'}', style: AppTheme.bodyMedium),
                       ],
                     ),
                   ),

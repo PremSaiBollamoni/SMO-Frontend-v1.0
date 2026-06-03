@@ -20,125 +20,103 @@ class TempQrManagementScreen extends StatelessWidget {
     // Ensure HrController is initialized for employee list
     final hrController = Get.put(HrController());
     
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Temporary QR Code Management'),
-        backgroundColor: AppTheme.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              switch (controller.selectedView.value) {
-                case 'active':
-                  controller.loadActiveMappings();
-                  break;
-                case 'all':
-                  controller.loadAllMappings();
-                  break;
-                case 'history':
-                  controller.loadScanHistory();
-                  break;
-              }
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // View selector tabs
-          Obx(() => Container(
-            color: Colors.grey[200],
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildTabButton(
-                    context,
-                    'Active',
-                    'active',
-                    controller.selectedView.value == 'active',
-                    () => controller.changeView('active'),
+    return Stack(
+      children: [
+        Obx(() => Column(
+          children: [
+            // View selector tabs
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildTabButton(
+                      'Active (${controller.activeMappings.length})',
+                      controller.selectedView.value == 'active',
+                      () => controller.changeView('active'),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildTabButton(
-                    context,
-                    'All',
-                    'all',
-                    controller.selectedView.value == 'all',
-                    () => controller.changeView('all'),
+                  Expanded(
+                    child: _buildTabButton(
+                      'All',
+                      controller.selectedView.value == 'all',
+                      () => controller.changeView('all'),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildTabButton(
-                    context,
-                    'History',
-                    'history',
-                    controller.selectedView.value == 'history',
-                    () => controller.changeView('history'),
+                  Expanded(
+                    child: _buildTabButton(
+                      'History',
+                      controller.selectedView.value == 'history',
+                      () => controller.changeView('history'),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          )),
-          
-          // Content area
-          Expanded(
-            child: Obx(() {
-              if (controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              
-              switch (controller.selectedView.value) {
-                case 'active':
-                  return ActiveMappingsView(controller: controller);
-                case 'all':
-                  return AllMappingsView(controller: controller);
-                case 'history':
-                  return ScanHistoryView(controller: controller);
-                default:
-                  return const Center(child: Text('Unknown view'));
-              }
-            }),
+            
+            // Content area
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                
+                switch (controller.selectedView.value) {
+                  case 'active':
+                    return ActiveMappingsView(controller: controller);
+                  case 'all':
+                    return AllMappingsView(controller: controller);
+                  case 'history':
+                    return ScanHistoryView(controller: controller);
+                  default:
+                    return const Center(child: Text('Unknown view'));
+                }
+              }),
+            ),
+          ],
+        )),
+        // FAB
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: FloatingActionButton.extended(
+            onPressed: () => _showQrScanDialog(context, controller, hrController),
+            backgroundColor: AppTheme.primary,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text('Scan QR'),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showQrScanDialog(context, controller, hrController),
-        backgroundColor: AppTheme.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.qr_code_scanner),
-        label: const Text('Scan QR'),
-      ),
+        ),
+      ],
     );
   }
   
   Widget _buildTabButton(
-    BuildContext context,
     String label,
-    String value,
     bool isSelected,
     VoidCallback onTap,
   ) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.primary : Colors.transparent,
-          border: Border(
-            bottom: BorderSide(
-              color: isSelected ? AppTheme.primary : Colors.grey[300]!,
-              width: 2,
-            ),
-          ),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Colors.white : AppTheme.onSurfaceVariant,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 13,
           ),
         ),
       ),

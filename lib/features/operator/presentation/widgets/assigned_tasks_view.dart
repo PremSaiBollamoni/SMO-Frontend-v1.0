@@ -10,9 +10,7 @@ class AssignedTasksView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<OperatorController>();
-    final dark = Theme.of(context).brightness == Brightness.dark;
-
-    return Obx(() {
+        return Obx(() {
       return RefreshIndicator(
         onRefresh: controller.fetchTasks,
         child: ListView(
@@ -20,9 +18,7 @@ class AssignedTasksView extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: dark
-                  ? AppTheme.darkCardDecoration
-                  : AppTheme.cardDecoration,
+              decoration: AppTheme.cardDecoration,
               child: Row(
                 children: [
                   Expanded(
@@ -52,9 +48,7 @@ class AssignedTasksView extends StatelessWidget {
             else if (controller.tasks.isEmpty)
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: dark
-                    ? AppTheme.darkCardDecoration
-                    : AppTheme.cardDecoration,
+                decoration: AppTheme.cardDecoration,
                 child: Text(
                   'No active assigned tasks.',
                   style: AppTheme.bodyLarge,
@@ -66,9 +60,7 @@ class AssignedTasksView extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: dark
-                        ? AppTheme.darkCardDecoration
-                        : AppTheme.cardDecoration,
+                    decoration: AppTheme.cardDecoration,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

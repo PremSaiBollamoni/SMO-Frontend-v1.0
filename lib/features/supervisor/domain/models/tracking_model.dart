@@ -5,6 +5,7 @@ class TrackingModel {
   final String status;
   final int? supervisorId; // Added for tracking who performed the action
   final int? operationId; // Current operation being completed
+  final List<int>? employeeIds; // NEW: Multi-employee support (list of employee IDs)
 
   TrackingModel({
     required this.machineQr,
@@ -13,6 +14,7 @@ class TrackingModel {
     required this.status,
     this.supervisorId,
     this.operationId,
+    this.employeeIds,
   });
 
   Map<String, dynamic> toJson() {
@@ -33,6 +35,11 @@ class TrackingModel {
       json['operationId'] = operationId;
     }
 
+    // NEW: Include multi-employee list if present
+    if (employeeIds != null && employeeIds!.isNotEmpty) {
+      json['employeeIds'] = employeeIds;
+    }
+
     return json;
   }
 
@@ -44,6 +51,7 @@ class TrackingModel {
       status: json['status'] ?? '',
       supervisorId: json['supervisorId'],
       operationId: json['operationId'],
+      employeeIds: json['employeeIds'] != null ? List<int>.from(json['employeeIds']) : null,
     );
   }
 
@@ -54,6 +62,7 @@ class TrackingModel {
     String? status,
     int? supervisorId,
     int? operationId,
+    List<int>? employeeIds,
   }) {
     return TrackingModel(
       machineQr: machineQr ?? this.machineQr,
@@ -62,6 +71,7 @@ class TrackingModel {
       status: status ?? this.status,
       supervisorId: supervisorId ?? this.supervisorId,
       operationId: operationId ?? this.operationId,
+      employeeIds: employeeIds ?? this.employeeIds,
     );
   }
 }

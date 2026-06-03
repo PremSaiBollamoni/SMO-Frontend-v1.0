@@ -16,6 +16,9 @@ class WorkflowNode {
   final int operationId;
   final int routingId;
 
+  /// Active operators count — 0 means no tracking, >0 means tracking active
+  final int activeOperators;
+
   WorkflowNode({
     required this.id,
     required this.displayName,
@@ -25,10 +28,11 @@ class WorkflowNode {
     this.sequenceIndex = 0,
     this.operationId = 0,
     this.routingId = 0,
+    this.activeOperators = 0,
   });
 }
 
-/// Widget for rendering a single workflow node
+/// Widget for rendering a single workflow node with color highlight for active tracking
 class WorkflowNodeWidget extends StatelessWidget {
   final WorkflowNode node;
   final double width;
@@ -43,17 +47,33 @@ class WorkflowNodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determine block color based on tracking status
+    Color blockColor;
+    Color borderColor;
+    
+    if (node.activeOperators > 0) {
+      // Tracking active - bright green highlight
+      blockColor = const Color(0xFF4CAF50);
+      borderColor = const Color(0xFF2E7D32);
+    } else if (node.isMerge) {
+      // Merge operation - orange
+      blockColor = const Color(0xFFFFA726);
+      borderColor = const Color(0xFFF57C00);
+    } else {
+      // Normal operation - blue
+      blockColor = const Color(0xFF42A5F5);
+      borderColor = const Color(0xFF1976D2);
+    }
+
     final nodeWidget = Container(
       width: width,
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: node.isMerge ? const Color(0xFFFFA726) : const Color(0xFF42A5F5),
+        color: blockColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: node.isMerge
-              ? const Color(0xFFF57C00)
-              : const Color(0xFF1976D2),
+          color: borderColor,
           width: 2,
         ),
         boxShadow: [
@@ -62,11 +82,18 @@ class WorkflowNodeWidget extends StatelessWidget {
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
+          // Add glow effect when tracking
+          if (node.activeOperators > 0)
+            BoxShadow(
+              color: const Color(0xFF4CAF50).withValues(alpha: 0.4),
+              blurRadius: 8,
+              spreadRadius: 2,
+            ),
         ],
       ),
       child: Center(
         child: Text(
-          node.displayName, // WS code as primary label
+          node.displayName,
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -80,13 +107,15 @@ class WorkflowNodeWidget extends StatelessWidget {
     );
 
     // Wrap in tooltip showing Op Description if available
-    if (node.description.isNotEmpty && node.description != node.displayName) {
+    if (node.description.isNotEmpty &&
+        node.description != node.displayName) {
       return Tooltip(
         message: node.description,
         preferBelow: false,
         child: nodeWidget,
       );
     }
+    
     return nodeWidget;
   }
 }

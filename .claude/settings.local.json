@@ -15,7 +15,24 @@
       "Bash(curl -s http://localhost:8080/api/supervisor/employees)",
       "Bash(xargs cat)",
       "Bash(grep -E \"\\\\.\\(java\\)$\")",
-      "Bash(curl -s \"http://localhost:8080/api/hr/roles\")"
+      "Bash(curl -s \"http://localhost:8080/api/hr/roles\")",
+      "Read(//c/Users/HP/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/deac93ab-060e-423f-91b3-e6fef2b00558/e2e90cc8-a6dd-4003-bc8c-909505257088/skills/docx/**)",
+      "Bash(python scripts/office/extract-text.py \"C:\\\\Users\\\\HP\\\\Downloads\\\\AgriSpray_SRS_v1.0.docx\")",
+      "Read(//c/Users/HP/Downloads/**)",
+      "Bash(python -m zipfile -l \"AgriSpray_SRS_v1.0.docx\")",
+      "Bash(pandoc \"C:\\\\Users\\\\HP\\\\Downloads\\\\AgriSpray_SRS_v1.0.docx\" -t plain --wrap=none)",
+      "WebSearch",
+      "Bash(mysql -h localhost -u root -pPremSai -e \"SHOW TABLES;\" smo)",
+      "Bash(xargs wc -l)",
+      "Bash(flutter analyze *)",
+      "Read(//c/Users/HP/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/deac93ab-060e-423f-91b3-e6fef2b00558/e2e90cc8-a6dd-4003-bc8c-909505257088/**)",
+      "Bash(python)",
+      "Bash(python scripts/recalc.py Hourly_Production_Report.xlsx)",
+      "Bash(ls -la \"C:\\\\Users\\\\HP\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\deac93ab-060e-423f-91b3-e6fef2b00558\\\\e2e90cc8-a6dd-4003-bc8c-909505257088\\\\\" | head -20)",
+      "Bash(python3)",
+      "Bash(cp /tmp/Hourly_Production_Report.xlsx \"/c/Users/HP/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/deac93ab-060e-423f-91b3-e6fef2b00558/e2e90cc8-a6dd-4003-bc8c-909505257088/\")",
+      "Bash(cp /tmp/Hourly_Production_Report.xlsx \"C:\\\\Users\\\\HP\\\\SMOBZAV2\\\\\")",
+      "Bash(python create_report.py)"
     ]
   }
 }

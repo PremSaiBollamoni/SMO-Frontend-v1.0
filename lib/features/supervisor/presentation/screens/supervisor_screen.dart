@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/widgets/dashboard_shell.dart';
 import '../../../../login_screen.dart';
 import '../../../../profile_tab.dart';
 import '../controller/supervisor_controller.dart';
@@ -15,9 +16,9 @@ import 'temp_qr_management_screen.dart';
 import 'break_window_screen.dart';
 import '../../../../core/utils/switch_role_helper.dart';
 import '../../../../features/process_planner/presentation/widgets/approved_process_plans_view.dart';
+import '../../../../features/analytics/analytics_screen.dart';
 
-/// Supervisor Screen - Activity-driven tab visibility.
-/// Each tab is only shown if the user has the corresponding activity.
+/// Supervisor Screen - Activity-driven dashboard home.
 class SupervisorScreen extends StatefulWidget {
   final String empId;
   final String employeeName;
@@ -37,72 +38,21 @@ class SupervisorScreen extends StatefulWidget {
 }
 
 class _SupervisorScreenState extends State<SupervisorScreen> {
-  int _currentTab = 0;
   late final SupervisorController _controller;
-  late final List<_TabItem> _tabs;
 
   @override
   void initState() {
     super.initState();
-    // Set employee ID in API client for authenticated requests
     ApiClient().setEmpId(widget.empId);
     _controller = Get.put(SupervisorController());
     _controller.initialize(widget.empId, widget.employeeName, widget.role);
     _controller.fetchFloorInsights();
-    _tabs = _buildTabs();
   }
 
   @override
   void dispose() {
     Get.delete<SupervisorController>();
     super.dispose();
-  }
-
-  /// Build only the tabs the user has activity for
-  List<_TabItem> _buildTabs() {
-    final acts = widget.activities;
-    final tabs = <_TabItem>[];
-
-    // QR Assignment, Tracking, and Merging are now accessed through Process Plans graph
-    // They are no longer shown as separate tabs in the sidebar
-
-    if (acts.contains('MANAGE_TEMP_QR_CODES')) {
-      tabs.add(_TabItem(Icons.qr_code_scanner, 'Temp QR Codes', TempQrManagementScreen(empId: widget.empId)));
-    }
-    if (acts.contains('SUPERVISOR_MONITOR_WIP')) {
-      tabs.add(_TabItem(Icons.dashboard_outlined, 'Monitor WIP', const DashboardView()));
-    }
-    if (acts.contains('SUPERVISOR_MONITOR_WIP')) {
-      tabs.add(_TabItem(Icons.bar_chart_outlined, 'WIP Stats', const WipStatsView()));
-    }
-    if (acts.contains('SUPERVISOR_VIEW_OPERATOR_PERFORMANCE')) {
-      tabs.add(_TabItem(Icons.speed_outlined, 'Operator Performance', const OperatorPerformanceView()));
-    }
-    if (acts.contains('SUPERVISOR_REASSIGN_WORK')) {
-      tabs.add(_TabItem(Icons.swap_horiz_outlined, 'Reassign Work', const ReassignWorkView()));
-    }
-    if (acts.contains('SUPERVISOR_MONITOR_WIP')) {
-      tabs.add(_TabItem(Icons.monitor_outlined, 'Workflow Monitor', WorkflowMonitoringView(empId: widget.empId)));
-    }
-    if (acts.contains('PP_VIEW_ALL')) {
-      tabs.add(_TabItem(
-        Icons.account_tree_outlined,
-        'Process Plans',
-        ApprovedProcessPlansView(empId: widget.empId, activities: widget.activities),
-      ));
-    }
-    // Break windows — available to all supervisors
-    if (acts.contains('SUPERVISOR_MONITOR_WIP') || acts.contains('PP_VIEW_ALL')) {
-      tabs.add(_TabItem(
-        Icons.free_breakfast_outlined,
-        'Break Windows',
-        const BreakWindowScreen(),
-      ));
-    }
-    // Profile always available
-    tabs.add(_TabItem(Icons.person_outline, 'My Profile', ProfileTab(empId: widget.empId.trim())));
-
-    return tabs;
   }
 
   Future<void> _logout() async {
@@ -116,134 +66,111 @@ class _SupervisorScreenState extends State<SupervisorScreen> {
     );
   }
 
-  Widget _buildDrawerItem(int index) {
-    final tab = _tabs[index];
-    final selected = _currentTab == index;
-    return ListTile(
-      leading: Icon(
-        tab.icon,
-        color: selected ? AppTheme.primary : AppTheme.onSurfaceVariant,
-      ),
-      title: Text(
-        tab.label,
-        style: AppTheme.bodyMedium.copyWith(
-          color: selected ? AppTheme.primary : AppTheme.onSurface,
-          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-        ),
-      ),
-      selected: selected,
-      onTap: () {
-        Navigator.of(context).pop();
-        setState(() => _currentTab = index);
-      },
-    );
+  List<FeatureGroup> _buildGroups() {
+    final acts = widget.activities;
+    final monitoring = <FeatureCard>[];
+    final operations = <FeatureCard>[];
+    final planning = <FeatureCard>[];
+    final account = <FeatureCard>[];
+
+    // Monitoring group
+    if (acts.contains('SUPERVISOR_MONITOR_WIP')) {
+      monitoring.add(FeatureCard(
+        icon: Icons.dashboard_outlined,
+        label: 'Monitor WIP',
+        screen: const DashboardView(),
+        color: AppTheme.primary,
+      ));
+      monitoring.add(FeatureCard(
+        icon: Icons.bar_chart_outlined,
+        label: 'WIP Stats',
+        screen: const WipStatsView(),
+        color: AppTheme.info,
+      ));
+      monitoring.add(FeatureCard(
+        icon: Icons.monitor_outlined,
+        label: 'Workflow Monitor',
+        screen: WorkflowMonitoringView(empId: widget.empId),
+        color: AppTheme.tertiary,
+      ));
+    }
+    if (acts.contains('SUPERVISOR_VIEW_OPERATOR_PERFORMANCE')) {
+      monitoring.add(FeatureCard(
+        icon: Icons.speed_outlined,
+        label: 'Operator Performance',
+        screen: const OperatorPerformanceView(),
+        color: AppTheme.secondary,
+      ));
+    }
+
+    // Operations group
+    if (acts.contains('MANAGE_TEMP_QR_CODES')) {
+      operations.add(FeatureCard(
+        icon: Icons.qr_code_scanner,
+        label: 'Temp QR Codes',
+        screen: TempQrManagementScreen(empId: widget.empId),
+        color: AppTheme.primary,
+      ));
+    }
+    if (acts.contains('SUPERVISOR_REASSIGN_WORK')) {
+      operations.add(FeatureCard(
+        icon: Icons.swap_horiz_outlined,
+        label: 'Reassign Work',
+        screen: const ReassignWorkView(),
+        color: AppTheme.secondary,
+      ));
+    }
+    if (acts.contains('SUPERVISOR_MONITOR_WIP') || acts.contains('PP_VIEW_ALL')) {
+      operations.add(FeatureCard(
+        icon: Icons.free_breakfast_outlined,
+        label: 'Break Windows',
+        screen: const BreakWindowScreen(),
+        color: AppTheme.tertiary,
+      ));
+    }
+
+    // Planning group
+    if (acts.contains('PP_VIEW_ALL')) {
+      planning.add(FeatureCard(
+        icon: Icons.account_tree_outlined,
+        label: 'Process Plans',
+        screen: ApprovedProcessPlansView(empId: widget.empId, activities: widget.activities),
+        color: AppTheme.primary,
+      ));
+    }
+
+    // Account
+    account.add(FeatureCard(
+      icon: Icons.person_outline,
+      label: 'My Profile',
+      screen: ProfileTab(empId: widget.empId.trim()),
+      color: AppTheme.onSurfaceVariant,
+    ));
+    account.add(FeatureCard(
+      icon: Icons.analytics_outlined,
+      label: 'Analytics',
+      screen: const AnalyticsScreen(),
+      color: AppTheme.info,
+    ));
+
+    final groups = <FeatureGroup>[];
+    if (monitoring.isNotEmpty) groups.add(FeatureGroup(title: 'Monitoring', cards: monitoring));
+    if (operations.isNotEmpty) groups.add(FeatureGroup(title: 'Operations', cards: operations));
+    if (planning.isNotEmpty) groups.add(FeatureGroup(title: 'Planning', cards: planning));
+    groups.add(FeatureGroup(title: 'Account', cards: account));
+    return groups;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_tabs.isEmpty) {
-      return const Scaffold(
-        body: Center(child: Text('No activities assigned.')),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.role),
-        actions: [
-          IconButton(onPressed: _logout, tooltip: 'Logout', icon: const Icon(Icons.logout)),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(36),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '${widget.employeeName} • EMP ${widget.empId}',
-                style: AppTheme.bodySmall.copyWith(color: AppTheme.onPrimary),
-              ),
-            ),
-          ),
-        ),
-      ),
-      drawer: Drawer(
-        child: SafeArea(
-          child: Column(
-            children: [
-              DrawerHeader(
-                margin: EdgeInsets.zero,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.primary, AppTheme.primaryVariant],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const Icon(Icons.factory_outlined, color: Colors.white, size: 34),
-                      const SizedBox(height: 10),
-                      Text(
-                        widget.employeeName,
-                        style: AppTheme.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${widget.role} • ID ${widget.empId}',
-                        style: AppTheme.bodySmall.copyWith(color: Colors.white70),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              ...List.generate(_tabs.length, _buildDrawerItem),
-              const Spacer(),
-              const Divider(height: 1),
-              // Switch Role — only shown when employee has multiple roles
-              FutureBuilder<bool>(
-                future: SwitchRoleHelper.hasMultipleRoles(),
-                builder: (ctx, snap) {
-                  if (snap.data != true) return const SizedBox.shrink();
-                  return ListTile(
-                    leading: const Icon(Icons.switch_account, color: Colors.purple),
-                    title: Text(
-                      'Switch Role',
-                      style: AppTheme.bodyMedium.copyWith(
-                          color: Colors.purple, fontWeight: FontWeight.w700),
-                    ),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      SwitchRoleHelper.showRolePicker(context);
-                    },
-                  );
-                },
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.logout, color: AppTheme.error),
-                title: Text(
-                  'Logout',
-                  style: AppTheme.bodyMedium.copyWith(color: AppTheme.error, fontWeight: FontWeight.w700),
-                ),
-                onTap: _logout,
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: _tabs[_currentTab].screen,
+    return DashboardShell(
+      title: 'Supervisor',
+      employeeName: widget.employeeName,
+      empId: widget.empId,
+      role: widget.role,
+      roleIcon: Icons.factory_outlined,
+      groups: _buildGroups(),
+      onLogout: _logout,
     );
   }
-}
-
-class _TabItem {
-  final IconData icon;
-  final String label;
-  final Widget screen;
-  const _TabItem(this.icon, this.label, this.screen);
 }

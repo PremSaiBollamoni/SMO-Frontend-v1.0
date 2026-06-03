@@ -1,5 +1,5 @@
 class MachineModel {
-  final int? machineId;
+  final String? machineId;
   final String machineName;
   final String machineType;
   final String status;
@@ -13,7 +13,7 @@ class MachineModel {
 
   factory MachineModel.fromJson(Map<String, dynamic> json) {
     return MachineModel(
-      machineId: json['machineId'],
+      machineId: json['machineId']?.toString(),
       machineName: json['name'] ?? '',
       machineType: json['type'] ?? '',
       status: json['status'] ?? 'ACTIVE',

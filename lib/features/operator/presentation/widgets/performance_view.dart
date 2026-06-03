@@ -11,9 +11,7 @@ class PerformanceView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppTheme.darkSurfaceVariant
-            : AppTheme.surfaceVariant,
+        color: AppTheme.surfaceVariant,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -35,9 +33,7 @@ class PerformanceView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<OperatorController>();
-    final dark = Theme.of(context).brightness == Brightness.dark;
-
-    return Obx(() {
+        return Obx(() {
       return RefreshIndicator(
         onRefresh: controller.fetchPerformance,
         child: ListView(
@@ -45,9 +41,7 @@ class PerformanceView extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: dark
-                  ? AppTheme.darkCardDecoration
-                  : AppTheme.cardDecoration,
+              decoration: AppTheme.cardDecoration,
               child: Row(
                 children: [
                   Expanded(
@@ -77,17 +71,13 @@ class PerformanceView extends StatelessWidget {
             else if (controller.performance.value == null)
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: dark
-                    ? AppTheme.darkCardDecoration
-                    : AppTheme.cardDecoration,
+                decoration: AppTheme.cardDecoration,
                 child: Text('No performance data.', style: AppTheme.bodyLarge),
               )
             else
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: dark
-                    ? AppTheme.darkCardDecoration
-                    : AppTheme.cardDecoration,
+                decoration: AppTheme.cardDecoration,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

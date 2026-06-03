@@ -172,7 +172,26 @@ class RolesView extends StatelessWidget {
           // Role list
           Expanded(
             child: filteredRoles.isEmpty
-                ? const Center(child: Text('No roles found'))
+                ? Center(
+                    child: Container(
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(32),
+                      decoration: AppTheme.cardDecoration,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.work_outline, size: 64, color: AppTheme.onSurfaceVariant),
+                          const SizedBox(height: 16),
+                          Text('No roles found', style: AppTheme.titleLarge),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tap + to create your first role',
+                            style: AppTheme.bodyMedium.copyWith(color: AppTheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.only(
                       left: 16,

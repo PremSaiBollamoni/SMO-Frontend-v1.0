@@ -20,17 +20,13 @@ class DashboardView extends StatelessWidget {
 
       final chartData = [
         _ChartData('Roles', dashboard.totalRoles.toDouble(), AppTheme.primary),
-        _ChartData(
-          'Employees',
-          dashboard.totalEmployees.toDouble(),
-          AppTheme.success,
-        ),
+        _ChartData('Employees', dashboard.totalEmployees.toDouble(), AppTheme.secondary),
       ];
 
       return LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -38,13 +34,10 @@ class DashboardView extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // Statistics Chart
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                Container(
+                  decoration: AppTheme.cardDecoration,
                   child: Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -109,7 +102,7 @@ class DashboardView extends StatelessWidget {
                         'Total Employees',
                         dashboard.totalEmployees.toString(),
                         Icons.people_outline,
-                        AppTheme.success,
+                        AppTheme.secondary,
                       ),
                     ),
                   ],
@@ -128,43 +121,34 @@ class DashboardView extends StatelessWidget {
     IconData icon,
     Color color,
   ) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: AppTheme.cardDecoration,
       child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: color, size: 32),
+              child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    value,
-                    style: AppTheme.headlineSmall.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    title,
-                    style: AppTheme.bodyMedium.copyWith(
-                      color: AppTheme.onSurfaceVariant,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+            const SizedBox(height: 12),
+            Text(
+              value,
+              style: AppTheme.displaySmall.copyWith(
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              title,
+              style: AppTheme.bodySmall.copyWith(
+                color: AppTheme.onSurfaceVariant,
               ),
             ),
           ],

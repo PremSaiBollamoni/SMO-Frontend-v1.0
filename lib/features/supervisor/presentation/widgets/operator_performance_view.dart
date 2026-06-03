@@ -10,7 +10,6 @@ class OperatorPerformanceView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<SupervisorController>();
-    final dark = Theme.of(context).brightness == Brightness.dark;
 
     return Obx(() {
       final insights = controller.floorInsights.value;
@@ -19,11 +18,9 @@ class OperatorPerformanceView extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           _buildCard(
-            dark,
             Text('Operator Performance', style: AppTheme.headlineMedium),
           ),
           _buildCard(
-            dark,
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -49,7 +46,6 @@ class OperatorPerformanceView extends StatelessWidget {
             ),
           ),
           _buildCard(
-            dark,
             Row(
               children: [
                 const Icon(
@@ -74,11 +70,11 @@ class OperatorPerformanceView extends StatelessWidget {
     });
   }
 
-  Widget _buildCard(bool dark, Widget child) {
+  Widget _buildCard(Widget child) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: dark ? AppTheme.darkCardDecoration : AppTheme.cardDecoration,
+      decoration: AppTheme.cardDecoration,
       child: Padding(padding: const EdgeInsets.all(16), child: child),
     );
   }

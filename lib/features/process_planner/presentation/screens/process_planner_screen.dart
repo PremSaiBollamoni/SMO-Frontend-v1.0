@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/widgets/dashboard_shell.dart';
 import '../../../../login_screen.dart';
+import '../../../../profile_tab.dart';
 import '../controller/process_planner_controller.dart';
-import '../widgets/process_planner_sidebar.dart';
-import '../widgets/process_planner_top_bar.dart';
 import '../widgets/dashboard_view.dart';
 import '../widgets/products_view.dart';
 import '../widgets/operations_view.dart';
 import '../widgets/routings_view.dart';
 import '../widgets/routing_steps_view.dart';
 import '../widgets/edit_routing_view.dart';
-import '../widgets/profile_view.dart';
 import '../widgets/create_product_dialog.dart';
 import '../widgets/create_operation_dialog.dart';
 import '../widgets/create_routing_dialog.dart';
@@ -35,44 +35,24 @@ class ProcessPlannerScreen extends StatefulWidget {
   State<ProcessPlannerScreen> createState() => _ProcessPlannerScreenState();
 }
 
-class _ProcessPlannerScreenState extends State<ProcessPlannerScreen>
-    with SingleTickerProviderStateMixin {
-  final ProcessPlannerController _controller = Get.put(
-    ProcessPlannerController(),
-  );
-  int _selectedMenu = 0;
-  bool _isSidebarVisible = false;
-  late AnimationController _sidebarAnimationController;
-  late Animation<Offset> _sidebarSlideAnimation;
+class _ProcessPlannerScreenState extends State<ProcessPlannerScreen> {
+  final ProcessPlannerController _controller = Get.put(ProcessPlannerController());
 
   @override
   void initState() {
     super.initState();
-    _sidebarAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _sidebarSlideAnimation =
-        Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _sidebarAnimationController,
-            curve: Curves.easeInOut,
-          ),
-        );
     _loadSessionAndData();
   }
 
   @override
   void dispose() {
-    _sidebarAnimationController.dispose();
     super.dispose();
   }
 
   Future<void> _loadSessionAndData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final employeeName =
-          prefs.getString('EMPLOYEE_NAME') ?? widget.employeeName;
+      final employeeName = prefs.getString('EMPLOYEE_NAME') ?? widget.employeeName;
       final empId = prefs.getString('EMP_ID') ?? widget.empId;
 
       ApiClient().setEmpId(empId);
@@ -93,56 +73,27 @@ class _ProcessPlannerScreenState extends State<ProcessPlannerScreen>
     );
   }
 
-  String _getPageTitle() {
-    switch (_selectedMenu) {
-      case 0:
-        return 'Dashboard';
-      case 1:
-        return 'Products';
-      case 2:
-        return 'Operations';
-      case 3:
-        return 'Routings';
-      case 4:
-        return 'Routing Steps';
-      case 5:
-        return 'My Profile';
-      case 6:
-        return 'Edit Routing';
-      default:
-        return 'Process Planner';
-    }
-  }
-
   Future<void> _showCreateProductDialog() async {
     await showDialog<void>(
       context: context,
       builder: (context) => CreateProductDialog(
-        onCreateProduct:
-            ({
-              required int productId,
-              required String name,
-              required String category,
-              required String status,
-            }) async {
-              final success = await _controller.createProduct(
-                productId: productId,
-                name: name,
-                category: category,
-                status: status,
-              );
-
-              if (!mounted) return success;
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Product created successfully'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
-              return success;
-            },
+        onCreateProduct: ({
+          required int productId,
+          required String name,
+          required String category,
+          required String status,
+        }) async {
+          final success = await _controller.createProduct(
+            productId: productId, name: name, category: category, status: status,
+          );
+          if (!mounted) return success;
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Product created successfully'), backgroundColor: Colors.green),
+            );
+          }
+          return success;
+        },
       ),
     );
   }
@@ -151,246 +102,187 @@ class _ProcessPlannerScreenState extends State<ProcessPlannerScreen>
     await showDialog<void>(
       context: context,
       builder: (context) => CreateOperationDialog(
-        onCreateOperation:
-            ({
-              required int operationId,
-              required String name,
-              required String description,
-              required int sequence,
-              required int standardTime,
-              required bool isParallel,
-              required bool mergePoint,
-              required int stageGroup,
-            }) async {
-              final success = await _controller.createOperation(
-                operationId: operationId,
-                name: name,
-                sequence: sequence,
-                standardTime: standardTime,
-                isParallel: isParallel,
-                mergePoint: mergePoint,
-              );
-
-              if (!mounted) return success;
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Operation created successfully'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
-              return success;
-            },
+        onCreateOperation: ({
+          required int operationId,
+          required String name,
+          required String description,
+          required int sequence,
+          required int standardTime,
+          required bool isParallel,
+          required bool mergePoint,
+          required int stageGroup,
+        }) async {
+          final success = await _controller.createOperation(
+            operationId: operationId, name: name, sequence: sequence,
+            standardTime: standardTime, isParallel: isParallel, mergePoint: mergePoint,
+          );
+          if (!mounted) return success;
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Operation created successfully'), backgroundColor: Colors.green),
+            );
+          }
+          return success;
+        },
       ),
     );
   }
 
   Future<void> _showCreateRoutingDialog() async {
-    // Ensure products are loaded
     await _controller.fetchProducts();
-
     if (_controller.products.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please create a product first'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Please create a product first'), backgroundColor: Colors.red),
       );
       return;
     }
-
     await showDialog<void>(
       context: context,
       builder: (context) => CreateRoutingDialog(
-        onCreateRouting:
-            ({
-              required int routingId,
-              required int productId,
-              required int version,
-              required String status,
-              required String approvalStatus,
-            }) async {
-              final success = await _controller.createRouting(
-                routingId: routingId,
-                productId: productId,
-                version: version,
-                status: status,
-                approvalStatus: approvalStatus,
-              );
-
-              if (!mounted) return success;
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Routing created successfully'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
-              return success;
-            },
+        onCreateRouting: ({
+          required int routingId,
+          required int productId,
+          required int version,
+          required String status,
+          required String approvalStatus,
+        }) async {
+          final success = await _controller.createRouting(
+            routingId: routingId, productId: productId, version: version,
+            status: status, approvalStatus: approvalStatus,
+          );
+          if (!mounted) return success;
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Routing created successfully'), backgroundColor: Colors.green),
+            );
+          }
+          return success;
+        },
       ),
     );
   }
 
   Future<void> _showCreateRoutingStepDialog() async {
-    // Ensure routings and operations are loaded
-    await Future.wait([
-      _controller.fetchRoutings(),
-      _controller.fetchOperations(),
-    ]);
-
+    await Future.wait([_controller.fetchRoutings(), _controller.fetchOperations()]);
     if (_controller.routings.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please create a routing first'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Please create a routing first'), backgroundColor: Colors.red),
       );
       return;
     }
-
     if (_controller.operations.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please create an operation first'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Please create an operation first'), backgroundColor: Colors.red),
       );
       return;
     }
-
     await showDialog<void>(
       context: context,
       builder: (context) => CreateRoutingStepDialog(
-        onCreateRoutingStep:
-            ({
-              required int routingStepId,
-              required int routingId,
-              required int operationId,
-              required int stageGroup,
-            }) async {
-              final success = await _controller.createRoutingStep(
-                routingStepId: routingStepId,
-                routingId: routingId,
-                operationId: operationId,
-                stageGroup: stageGroup,
-              );
-
-              if (!mounted) return success;
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Routing step created successfully'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
-              return success;
-            },
+        onCreateRoutingStep: ({
+          required int routingStepId,
+          required int routingId,
+          required int operationId,
+          required int stageGroup,
+        }) async {
+          final success = await _controller.createRoutingStep(
+            routingStepId: routingStepId, routingId: routingId,
+            operationId: operationId, stageGroup: stageGroup,
+          );
+          if (!mounted) return success;
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Routing step created successfully'), backgroundColor: Colors.green),
+            );
+          }
+          return success;
+        },
       ),
     );
+  }
+
+  List<FeatureGroup> _buildGroups() {
+    final planning = <FeatureCard>[
+      FeatureCard(
+        icon: Icons.dashboard_outlined,
+        label: 'New Process Plan',
+        screen: DashboardView(),
+        color: AppTheme.primary,
+      ),
+      FeatureCard(
+        icon: Icons.category_outlined,
+        label: 'Products',
+        screen: const ProductsView(),
+        color: AppTheme.secondary,
+        fab: FloatingActionButton(
+          onPressed: () => _showCreateProductDialog(),
+          child: const Icon(Icons.add),
+        ),
+      ),
+      FeatureCard(
+        icon: Icons.settings_outlined,
+        label: 'Operations',
+        screen: const OperationsView(),
+        color: AppTheme.tertiary,
+        fab: FloatingActionButton(
+          onPressed: () => _showCreateOperationDialog(),
+          child: const Icon(Icons.add),
+        ),
+      ),
+      FeatureCard(
+        icon: Icons.route_outlined,
+        label: 'Routings',
+        screen: const RoutingsView(),
+        color: AppTheme.info,
+        fab: FloatingActionButton(
+          onPressed: () => _showCreateRoutingDialog(),
+          child: const Icon(Icons.add),
+        ),
+      ),
+      FeatureCard(
+        icon: Icons.linear_scale_outlined,
+        label: 'Routing Steps',
+        screen: const RoutingStepsView(),
+        color: AppTheme.primary,
+        fab: FloatingActionButton(
+          onPressed: () => _showCreateRoutingStepDialog(),
+          child: const Icon(Icons.add),
+        ),
+      ),
+      FeatureCard(
+        icon: Icons.edit_outlined,
+        label: 'Edit Routing',
+        screen: EditRoutingView(),
+        color: AppTheme.secondary,
+      ),
+    ];
+
+    final account = <FeatureCard>[
+      FeatureCard(
+        icon: Icons.person_outline,
+        label: 'My Profile',
+        screen: ProfileTab(empId: widget.empId.trim()),
+        color: AppTheme.onSurfaceVariant,
+      ),
+    ];
+
+    return [
+      FeatureGroup(title: 'Process Planning', cards: planning),
+      FeatureGroup(title: 'Account', cards: account),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                ProcessPlannerTopBar(
-                  isSidebarVisible: _isSidebarVisible,
-                  onToggleSidebar: () {
-                    setState(() => _isSidebarVisible = !_isSidebarVisible);
-                    if (_isSidebarVisible) {
-                      _sidebarAnimationController.forward();
-                    } else {
-                      _sidebarAnimationController.reverse();
-                    }
-                  },
-                  pageTitle: _getPageTitle(),
-                ),
-                Expanded(child: _buildContent()),
-              ],
-            ),
-            if (_isSidebarVisible)
-              Positioned(
-                left: 250,
-                top: 0,
-                right: 0,
-                bottom: 0,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() => _isSidebarVisible = false);
-                    _sidebarAnimationController.reverse();
-                  },
-                  child: Container(color: Colors.transparent),
-                ),
-              ),
-            if (_isSidebarVisible)
-              SlideTransition(
-                position: _sidebarSlideAnimation,
-                child: Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: ProcessPlannerSidebar(
-                    selectedMenu: _selectedMenu,
-                    onMenuSelected: (index) =>
-                        setState(() => _selectedMenu = index),
-                    onLogout: _logout,
-                    isVisible: _isSidebarVisible,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-      floatingActionButton: _selectedMenu >= 1 && _selectedMenu <= 4
-          ? FloatingActionButton(
-              onPressed: () {
-                switch (_selectedMenu) {
-                  case 1:
-                    _showCreateProductDialog();
-                    break;
-                  case 2:
-                    _showCreateOperationDialog();
-                    break;
-                  case 3:
-                    _showCreateRoutingDialog();
-                    break;
-                  case 4:
-                    _showCreateRoutingStepDialog();
-                    break;
-                }
-              },
-              child: const Icon(Icons.add),
-            )
-          : null,
+    return DashboardShell(
+      title: 'Process Planner',
+      employeeName: widget.employeeName,
+      empId: widget.empId,
+      role: widget.role,
+      roleIcon: Icons.account_tree_outlined,
+      groups: _buildGroups(),
+      onLogout: _logout,
     );
   }
-
-  Widget _buildContent() {
-    switch (_selectedMenu) {
-      case 0:
-        return const DashboardView();
-      case 1:
-        return const ProductsView();
-      case 2:
-        return const OperationsView();
-      case 3:
-        return const RoutingsView();
-      case 4:
-        return const RoutingStepsView();
-      case 5:
-        return const ProfileView();
-      case 6:
-        return const EditRoutingView();
-      default:
-        return const DashboardView();
-    }
-  }
 }
+

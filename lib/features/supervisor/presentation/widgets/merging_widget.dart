@@ -4,7 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../controllers/merging_controller.dart';
 import '../../../../core/theme/app_theme.dart';
 
-/// Widget version of Merging (extracted from MergingScreen)
+/// Widget version of Merging
 /// Used in operation details dialog when clicking a process plan node
 class MergingWidget extends StatelessWidget {
   final int? operationId;
@@ -27,231 +27,88 @@ class MergingWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Operation Info (if provided)
-            if (operationName != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.1),
-                  border: Border.all(color: AppTheme.primary),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline, color: AppTheme.primary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Operation:',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            operationName!,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+            // Operation Info
+            if (operationName != null) ...[
+              _buildInfoCard(
+                icon: Icons.merge_type_outlined,
+                color: AppTheme.primary,
+                label: 'Merge Operation',
+                value: operationName!,
               ),
-            if (operationName != null) const SizedBox(height: 16),
+              const SizedBox(height: 20),
+            ],
 
             // Tub 1 Section
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.inbox, color: Colors.blue.shade700),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Tub 1',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildQrField(
-                    context,
-                    label: 'Tub 1 QR',
-                    controller: controller.tub1QrController,
-                    onScan: () => _showQrScanner(
-                      context,
-                      'Scan Tub 1 QR',
-                      controller.setTub1Qr,
-                    ),
-                    quickTestValues: [
-                      'TRAY_001_TEST',
-                      'BIN_QR_12345',
-                      'CONTAINER_001',
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: 'Tub Description',
-                    controller: controller.tub1DescriptionController,
-                    hint: 'Enter tub 1 description',
-                  ),
-                ],
+            _buildTubSection(
+              context,
+              title: 'Source Tub 1',
+              color: AppTheme.primary,
+              icon: Icons.inbox_outlined,
+              qrCtrl: controller.tub1QrController,
+              descCtrl: controller.tub1DescriptionController,
+              onScan: () => _showQrScanner(context, 'Scan Tub 1 QR', controller.setTub1Qr),
+            ),
+            const SizedBox(height: 16),
+
+            // Merge arrow indicator
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.secondary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.merge, color: AppTheme.secondary, size: 24),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Tub 2 Section
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.shade200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.inbox, color: Colors.green.shade700),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Tub 2',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildQrField(
-                    context,
-                    label: 'Tub 2 QR',
-                    controller: controller.tub2QrController,
-                    onScan: () => _showQrScanner(
-                      context,
-                      'Scan Tub 2 QR',
-                      controller.setTub2Qr,
-                    ),
-                    quickTestValues: [
-                      'TRAY_002_TEST',
-                      'BIN_QR_67890',
-                      'CONTAINER_002',
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: 'Tub Description',
-                    controller: controller.tub2DescriptionController,
-                    hint: 'Enter tub 2 description',
-                  ),
-                ],
-              ),
+            _buildTubSection(
+              context,
+              title: 'Source Tub 2',
+              color: AppTheme.tertiary,
+              icon: Icons.inbox_outlined,
+              qrCtrl: controller.tub2QrController,
+              descCtrl: controller.tub2DescriptionController,
+              onScan: () => _showQrScanner(context, 'Scan Tub 2 QR', controller.setTub2Qr),
+            ),
+            const SizedBox(height: 20),
+
+            // Notes
+            Text('Notes (Optional)', style: AppTheme.titleSmall.copyWith(color: AppTheme.onSurfaceVariant, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: controller.notesController,
+              maxLines: 3,
+              decoration: AppTheme.inputDecoration('Additional notes about this merge...'),
             ),
             const SizedBox(height: 24),
-
-            // Optional Notes Section
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.note_add, color: Colors.grey.shade700),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Additional Notes (Optional)',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: controller.notesController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      hintText:
-                          'Enter any additional notes about this merge...',
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.all(12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
 
             // Action Buttons
             Obx(
               () => Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  OutlinedButton(
-                    onPressed: controller.isSubmitting.value
-                        ? null
-                        : controller.cancelForm,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: controller.isSubmitting.value ? null : controller.cancelForm,
+                      style: AppTheme.outlinedButtonStyle.copyWith(
+                        padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 14)),
                       ),
-                      child: Text('Cancel'),
+                      child: const Text('Cancel'),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: controller.isSubmitting.value
-                        ? null
-                        : controller.submitForm,
-                    style: AppTheme.primaryButtonStyle,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: controller.isSubmitting.value ? null : controller.submitForm,
+                      style: AppTheme.primaryButtonStyle.copyWith(
+                        padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 14)),
                       ),
                       child: controller.isSubmitting.value
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Merge'),
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Text('Merge Tubs'),
                     ),
                   ),
                 ],
@@ -263,135 +120,108 @@ class MergingWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildQrField(
-    BuildContext context, {
-    required String label,
-    required TextEditingController controller,
-    required VoidCallback onScan,
-    List<String>? quickTestValues,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-          text: TextSpan(
-            text: label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+  Widget _buildInfoCard({required IconData icon, required Color color, required String label, required String value}) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppTheme.bodySmall.copyWith(color: AppTheme.onSurfaceVariant)),
+                Text(value, style: AppTheme.titleMedium.copyWith(color: color, fontWeight: FontWeight.w700)),
+              ],
             ),
-            children: const [
-              TextSpan(
-                text: ' *',
-                style: TextStyle(color: Colors.red),
-              ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTubSection(
+    BuildContext context, {
+    required String title,
+    required Color color,
+    required IconData icon,
+    required TextEditingController qrCtrl,
+    required TextEditingController descCtrl,
+    required VoidCallback onScan,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 8),
+              Text(title, style: AppTheme.titleMedium.copyWith(color: color, fontWeight: FontWeight.w700)),
             ],
           ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: controller,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: 'Scan or enter $label manually',
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+          const SizedBox(height: 14),
+          // QR Field
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: qrCtrl,
+                  decoration: AppTheme.inputDecoration('QR Code *').copyWith(hintText: 'Scan or enter QR'),
+                  validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: onScan,
+                  icon: const Icon(Icons.qr_code_scanner, size: 20),
+                  label: const Text('Scan'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please scan or enter $label';
-                  }
-                  return null;
-                },
-                onChanged: (value) {
-                  if (value.trim().isNotEmpty) {
-                    controller.text = value.trim();
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton.icon(
-              onPressed: onScan,
-              icon: const Icon(Icons.qr_code_scanner),
-              label: const Text('Scan'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextField({
-    required String label,
-    required TextEditingController controller,
-    required String hint,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-          text: TextSpan(
-            text: label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-            children: const [
-              TextSpan(
-                text: ' *',
-                style: TextStyle(color: Colors.red),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            hintText: hint,
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
-            ),
+          const SizedBox(height: 12),
+          // Description
+          TextFormField(
+            controller: descCtrl,
+            decoration: AppTheme.inputDecoration('Description *'),
+            validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Please enter $label';
-            }
-            return null;
-          },
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  void _showQrScanner(
-    BuildContext context,
-    String title,
-    Function(String) onCodeScanned,
-  ) {
+  void _showQrScanner(BuildContext context, String title, Function(String) onCodeScanned) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
           height: 400,
           padding: const EdgeInsets.all(16),
@@ -400,39 +230,27 @@ class MergingWidget extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
+                  Text(title, style: AppTheme.titleLarge),
+                  IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Expanded(
-                child: MobileScanner(
-                  onDetect: (capture) {
-                    final List<Barcode> barcodes = capture.barcodes;
-                    if (barcodes.isNotEmpty) {
-                      final String? code = barcodes.first.rawValue;
-                      if (code != null && code.trim().isNotEmpty) {
-                        onCodeScanned(code.trim());
-                        Navigator.pop(context);
-                        Get.snackbar(
-                          'Success',
-                          'QR Code scanned successfully',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.green,
-                          colorText: Colors.white,
-                        );
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: MobileScanner(
+                    onDetect: (capture) {
+                      final barcodes = capture.barcodes;
+                      if (barcodes.isNotEmpty) {
+                        final code = barcodes.first.rawValue;
+                        if (code != null && code.trim().isNotEmpty) {
+                          onCodeScanned(code.trim());
+                          Navigator.pop(context);
+                          Get.snackbar('Success', 'QR Code scanned', snackPosition: SnackPosition.BOTTOM, backgroundColor: AppTheme.success, colorText: Colors.white);
+                        }
                       }
-                    }
-                  },
+                    },
+                  ),
                 ),
               ),
             ],

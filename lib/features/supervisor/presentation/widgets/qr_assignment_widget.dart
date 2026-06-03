@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:dio/dio.dart';
 import '../controllers/qr_assignment_controller.dart';
 import '../widgets/tray_quantity_stepper.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -112,85 +111,13 @@ class _QrAssignmentWidgetContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Operation Info (if provided)
-              if (operationName != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withValues(alpha: 0.1),
-                    border: Border.all(color: AppTheme.primary),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.info_outline, color: AppTheme.primary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Current Operation:',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              operationName!,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              if (operationName != null) const SizedBox(height: 16),
+              // Operation Info Cards
+              if (operationName != null || nextOperationName != null)
+                _buildOperationInfoSection(),
 
-              // Next Operation Info (Auto-determined from edges)
-              if (nextOperationName != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
-                    border: Border.all(color: Colors.green),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.arrow_forward, color: Colors.green),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Next Operation (Auto-detected):',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              nextOperationName!,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              if (nextOperationName != null) const SizedBox(height: 16),
+              // Form Fields
+              _buildSectionHeader('Assignment Details'),
+              const SizedBox(height: 12),
 
               // Process Plan Number
               _buildDropdownField(
@@ -205,90 +132,80 @@ class _QrAssignmentWidgetContent extends StatelessWidget {
                 },
                 isRequired: true,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // Order Number (Optional)
               Obx(() {
                 if (controller.activeOrders.isEmpty) {
                   return const SizedBox.shrink();
                 }
-
                 return Column(
                   children: [
                     DropdownButtonFormField<String>(
                       value: controller.selectedOrderNumber.value,
-                      decoration: const InputDecoration(
-                        labelText: 'Order Number (Optional)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.assignment),
-                        hintText: 'Select order to link bin',
+                      decoration: AppTheme.inputDecoration('Order Number (Optional)').copyWith(
+                        prefixIcon: const Icon(Icons.assignment_outlined, size: 20),
                       ),
                       isExpanded: true,
                       items: [
                         const DropdownMenuItem<String>(
                           value: null,
-                          child: Text('No Order (Unassigned)',
-                              overflow: TextOverflow.ellipsis),
+                          child: Text('No Order (Unassigned)', overflow: TextOverflow.ellipsis),
                         ),
                         ...controller.activeOrders.map((order) {
                           return DropdownMenuItem<String>(
-                            value: order['order_number'] ??
-                                order['order_id']?.toString(),
+                            value: order['order_number'] ?? order['order_id']?.toString(),
                             child: Text(
                               '${order['order_number'] ?? order['order_id']} - Product #${order['product_id']}',
                               overflow: TextOverflow.ellipsis,
                             ),
                           );
-                        }).toList(),
+                        }),
                       ],
-                      onChanged: (value) {
-                        controller.selectedOrderNumber.value = value;
-                      },
+                      onChanged: (value) => controller.selectedOrderNumber.value = value,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                   ],
                 );
               }),
 
               // QR Code Field with Scan Button
               _buildQrCodeField(context, controller),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // Style
+              // Style & Size
               _buildDropdownField(
                 label: 'Style',
                 value: controller.selectedStyle.value,
                 items: controller.styles,
                 onChanged: (value) => controller.selectedStyle.value = value,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // Size
               _buildDropdownField(
                 label: 'Size',
                 value: controller.selectedSize.value,
                 items: controller.sizes,
                 onChanged: (value) => controller.selectedSize.value = value,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // GTG Number
+              // GTG & BTN
               _buildDropdownField(
                 label: 'GTG Number',
                 value: controller.selectedGtg.value,
                 items: controller.gtgNumbers,
                 onChanged: (value) => controller.selectedGtg.value = value,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // Button Number (BTN)
               _buildDropdownField(
                 label: 'Button Number (BTN)',
                 value: controller.selectedBtn.value,
                 items: controller.btnNumbers,
                 onChanged: (value) => controller.selectedBtn.value = value,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // Label
               _buildDropdownField(
@@ -297,126 +214,146 @@ class _QrAssignmentWidgetContent extends StatelessWidget {
                 items: controller.labels,
                 onChanged: (value) => controller.selectedLabel.value = value,
               ),
-              const SizedBox(height: 16),
-
-              // Next Operation (Display only - auto-determined from edges)
-              // NO DROPDOWN - just show the next operation
-              const SizedBox(height: 0),
+              const SizedBox(height: 20),
 
               // Tray Quantity
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Tray Quantity',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TrayQuantityStepper(
-                    value: controller.trayQuantity.value,
-                    onIncrement: controller.incrementTrayQuantity,
-                    onDecrement: controller.decrementTrayQuantity,
-                  ),
-                ],
+              _buildSectionHeader('Tray Quantity'),
+              const SizedBox(height: 8),
+              TrayQuantityStepper(
+                value: controller.trayQuantity.value,
+                onIncrement: controller.incrementTrayQuantity,
+                onDecrement: controller.decrementTrayQuantity,
+                onValueChanged: controller.setTrayQuantity,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // Optional Notes Section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.note_add, color: Colors.grey.shade700),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Additional Notes (Optional)',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: controller.notesController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        hintText:
-                            'Enter any additional notes about this assignment...',
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.all(12),
-                      ),
-                    ),
-                  ],
-                ),
+              // Notes
+              _buildSectionHeader('Notes (Optional)'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: controller.notesController,
+                maxLines: 3,
+                decoration: AppTheme.inputDecoration('Additional notes...'),
               ),
               const SizedBox(height: 24),
 
               // Action Buttons
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  OutlinedButton(
-                    onPressed: controller.isSubmitting.value
-                        ? null
-                        : controller.cancelForm,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: controller.isSubmitting.value ? null : controller.cancelForm,
+                      style: AppTheme.outlinedButtonStyle.copyWith(
+                        padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 14)),
                       ),
-                      child: Text('Cancel'),
+                      child: const Text('Cancel'),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: controller.isSubmitting.value
-                        ? null
-                        : () => controller.submitForm(
-                              nextOperationName: nextOperationName,
-                              nextOperationId: nextOperationId,
-                              operationId: operationId,
-                            ),
-                    style: AppTheme.primaryButtonStyle,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: controller.isSubmitting.value
+                          ? null
+                          : () => controller.submitForm(
+                                nextOperationName: nextOperationName,
+                                nextOperationId: nextOperationId,
+                                operationId: operationId,
+                              ),
+                      style: AppTheme.primaryButtonStyle.copyWith(
+                        padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 14)),
                       ),
                       child: controller.isSubmitting.value
                           ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
+                              width: 20, height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('Submit'),
+                          : const Text('Assign QR'),
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
       );
     });
+  }
+
+  Widget _buildOperationInfoSection() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          if (operationName != null)
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.settings_outlined, color: AppTheme.primary, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Current Operation', style: AppTheme.bodySmall.copyWith(color: AppTheme.onSurfaceVariant)),
+                      Text(operationName!, style: AppTheme.titleMedium.copyWith(color: AppTheme.primary, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          if (operationName != null && nextOperationName != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  const SizedBox(width: 17),
+                  Container(width: 2, height: 20, color: AppTheme.surfaceVariant),
+                ],
+              ),
+            ),
+          if (nextOperationName != null)
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.success.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.arrow_forward, color: AppTheme.success, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Next Operation', style: AppTheme.bodySmall.copyWith(color: AppTheme.onSurfaceVariant)),
+                      Text(nextOperationName!, style: AppTheme.titleMedium.copyWith(color: AppTheme.success, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(title, style: AppTheme.titleSmall.copyWith(color: AppTheme.onSurfaceVariant, fontWeight: FontWeight.w600));
   }
 
   Widget _buildDropdownField({
@@ -426,114 +363,48 @@ class _QrAssignmentWidgetContent extends StatelessWidget {
     required ValueChanged<String?> onChanged,
     bool isRequired = false,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-          text: TextSpan(
-            text: label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-            children: [
-              if (isRequired)
-                const TextSpan(
-                  text: ' *',
-                  style: TextStyle(color: Colors.red),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: value,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          ),
-          hint: Text('Select $label'),
-          items: items.map((item) {
-            return DropdownMenuItem<String>(value: item, child: Text(item));
-          }).toList(),
-          onChanged: onChanged,
-          validator: isRequired
-              ? (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select $label';
-                  }
-                  return null;
-                }
-              : null,
-        ),
-      ],
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: AppTheme.inputDecoration(isRequired ? '$label *' : label),
+      isExpanded: true,
+      hint: Text('Select $label', style: AppTheme.bodyMedium.copyWith(color: AppTheme.onSurfaceVariant), overflow: TextOverflow.ellipsis),
+      items: items.map((item) => DropdownMenuItem<String>(value: item, child: Text(item, overflow: TextOverflow.ellipsis))).toList(),
+      onChanged: onChanged,
+      validator: isRequired
+          ? (value) => (value == null || value.isEmpty) ? 'Required' : null
+          : null,
     );
   }
 
-  Widget _buildQrCodeField(
-    BuildContext context,
-    QrAssignmentController controller,
-  ) {
-    return Column(
+  Widget _buildQrCodeField(BuildContext context, QrAssignmentController controller) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RichText(
-          text: const TextSpan(
-            text: 'QR Code',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+        Expanded(
+          child: TextFormField(
+            controller: controller.qrCodeController,
+            decoration: AppTheme.inputDecoration('QR Code *').copyWith(
+              hintText: 'Scan or enter QR Code',
             ),
-            children: [
-              TextSpan(
-                text: ' *',
-                style: TextStyle(color: Colors.red),
-              ),
-            ],
+            validator: (value) => (value == null || value.trim().isEmpty) ? 'Required' : null,
+            onChanged: (value) {
+              if (value.trim().isNotEmpty) {
+                controller.qrCodeController.text = value.trim();
+              }
+            },
           ),
         ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: controller.qrCodeController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Scan or enter QR Code manually',
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please scan or enter a QR code';
-                  }
-                  return null;
-                },
-                onChanged: (value) {
-                  if (value.trim().isNotEmpty) {
-                    controller.qrCodeController.text = value.trim();
-                  }
-                },
-              ),
+        const SizedBox(width: 10),
+        SizedBox(
+          height: 56,
+          child: ElevatedButton.icon(
+            onPressed: () => _showQrScanner(context, controller),
+            icon: const Icon(Icons.qr_code_scanner, size: 20),
+            label: const Text('Scan'),
+            style: AppTheme.primaryButtonStyle.copyWith(
+              padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 14, vertical: 0)),
             ),
-            const SizedBox(width: 8),
-            ElevatedButton.icon(
-              onPressed: () => _showQrScanner(context, controller),
-              icon: const Icon(Icons.qr_code_scanner),
-              label: const Text('Scan'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );
@@ -543,6 +414,7 @@ class _QrAssignmentWidgetContent extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
           height: 400,
           padding: const EdgeInsets.all(16),
@@ -551,36 +423,36 @@ class _QrAssignmentWidgetContent extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Scan QR Code',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  Text('Scan QR Code', style: AppTheme.titleLarge),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Expanded(
-                child: MobileScanner(
-                  onDetect: (capture) {
-                    final List<Barcode> barcodes = capture.barcodes;
-                    if (barcodes.isNotEmpty) {
-                      final String? code = barcodes.first.rawValue;
-                      if (code != null && code.trim().isNotEmpty) {
-                        controller.setQrCode(code.trim());
-                        Navigator.pop(context);
-                        Get.snackbar(
-                          'Success',
-                          'QR Code scanned successfully',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.green,
-                          colorText: Colors.white,
-                        );
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: MobileScanner(
+                    onDetect: (capture) {
+                      final List<Barcode> barcodes = capture.barcodes;
+                      if (barcodes.isNotEmpty) {
+                        final String? code = barcodes.first.rawValue;
+                        if (code != null && code.trim().isNotEmpty) {
+                          controller.setQrCode(code.trim());
+                          Navigator.pop(context);
+                          Get.snackbar(
+                            'Success',
+                            'QR Code scanned',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: AppTheme.success,
+                            colorText: Colors.white,
+                          );
+                        }
                       }
-                    }
-                  },
+                    },
+                  ),
                 ),
               ),
             ],
