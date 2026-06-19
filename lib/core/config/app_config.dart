@@ -1,10 +1,6 @@
-import 'package:flutter/foundation.dart';
-
 /// Application configuration constants
-/// Production deployment - enforce HTTPS only
-const String fallbackBaseUrl = kDebugMode
-    ? 'http://192.168.1.8:8080'  // Local dev (allow HTTP for dev)
-    : 'https://smobza.thegttech.com/smo';  // Deployed backend (HTTPS only)
+/// Development - use localhost
+const String fallbackBaseUrl = 'http://192.168.1.8:8080';
 const String appVersion = '1.0';
 const String appName = 'SMO System';
 const String appSubtitle = 'Sewing Machine Operations';
