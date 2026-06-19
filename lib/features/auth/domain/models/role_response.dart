@@ -5,6 +5,9 @@ class RoleResponse {
   final String empId;
   final String activities;
   final List<Map<String, dynamic>> allRoles;
+  final String? token;
+  final String? refreshToken;
+  final int? tokenExpiresIn;
 
   RoleResponse({
     required this.role,
@@ -12,6 +15,9 @@ class RoleResponse {
     required this.empId,
     required this.activities,
     required this.allRoles,
+    this.token,
+    this.refreshToken,
+    this.tokenExpiresIn,
   });
 
   factory RoleResponse.fromJson(Map<String, dynamic> json) {
@@ -26,6 +32,9 @@ class RoleResponse {
       empId: (json['empId'] ?? '').toString(),
       activities: (json['activities'] ?? '').toString(),
       allRoles: roles,
+      token: json['token'] as String?,
+      refreshToken: json['refreshToken'] as String?,
+      tokenExpiresIn: json['tokenExpiresIn'] as int?,
     );
   }
 }

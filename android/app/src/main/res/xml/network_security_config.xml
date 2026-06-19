@@ -2,7 +2,7 @@
 <network-security-config>
     <!-- Default configuration - require HTTPS for all domains -->
     <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">example.com</domain>
+        <domain includeSubdomains="true">smobza.thegttech.com</domain>
     </domain-config>
 
     <!-- Development configuration - allow cleartext only for localhost and local IPs -->

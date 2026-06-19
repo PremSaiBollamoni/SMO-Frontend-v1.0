@@ -8,6 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'core/routing/app_router.dart';
 import 'core/services/service_discovery.dart';
 import 'core/widgets/splash_screen.dart';
+import 'core/security/jailbreak_detection.dart';
 import 'login_screen.dart';
 
 void main() {
@@ -35,6 +36,10 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _initializeApp() async {
     Get.put(ServiceDiscoveryService());
+
+    // Check device security (jailbreak/root detection)
+    await JailbreakDetectionService.checkDeviceSecurityOnStartup();
+
     await _restoreSession();
     _checkBackendConnection();
     await Future.delayed(const Duration(milliseconds: 1500));

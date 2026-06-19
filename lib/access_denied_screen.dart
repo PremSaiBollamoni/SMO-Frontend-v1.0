@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
+import 'core/security/secure_storage_helper.dart';
 import 'login_screen.dart';
 
 class AccessDeniedScreen extends StatelessWidget {
@@ -18,6 +19,10 @@ class AccessDeniedScreen extends StatelessWidget {
   });
 
   Future<void> _logout(BuildContext context) async {
+    // Clear secure storage (tokens)
+    await SecureStorageHelper.clearAllTokens();
+
+    // Clear preferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
 

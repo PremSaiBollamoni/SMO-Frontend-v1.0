@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'dart:developer' as dev;
+import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
 import '../security/secure_storage_helper.dart';
 
@@ -20,19 +21,21 @@ class DioSetup {
       ),
     );
 
-    // Add Logging Interceptor
-    dio.interceptors.add(
-      PrettyDioLogger(
-        requestHeader: true,
-        requestBody: true,
-        responseBody: true,
-        responseHeader: true,
-        error: true,
-        compact: false,
-        maxWidth: 120,
-        logPrint: (object) => dev.log(object.toString(), name: 'API_LOG'),
-      ),
-    );
+    // Add Logging Interceptor - Only in debug mode
+    if (kDebugMode) {
+      dio.interceptors.add(
+        PrettyDioLogger(
+          requestHeader: true,
+          requestBody: true,
+          responseBody: false,  // Don't log responses in case they contain sensitive data
+          responseHeader: false,
+          error: true,
+          compact: false,
+          maxWidth: 120,
+          logPrint: (object) => dev.log(object.toString(), name: 'API_LOG'),
+        ),
+      );
+    }
 
     // Add JWT Token Interceptor - Adds JWT token to all authenticated requests
     dio.interceptors.add(
@@ -54,30 +57,48 @@ class DioSetup {
       ),
     );
 
-    // Add Custom Detailed Logging Interceptor
+    // Add Custom Detailed Logging Interceptor - Only in debug mode
+    if (kDebugMode) {
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            // Don't log headers/params as they may contain sensitive data
+            dev.log(
+              '[REQUEST] ${options.method} ${options.path}',
+              name: 'API_DETAILED',
+            );
+
+            final empId = dio.options.headers['X-EMP-ID'];
+            if (empId != null) {
+              options.queryParameters[QueryParams.actorEmpId] = empId;
+              // Don't log actual employee ID values
+              dev.log('[REQUEST] Actor EMP ID added', name: 'API_DETAILED');
+            }
+            return handler.next(options);
+          },
+          onResponse: (response, handler) {
+            dev.log(
+              '[RESPONSE] ${response.statusCode} - ${response.requestOptions.path}',
+              name: 'API_DETAILED',
+            );
+            return handler.next(response);
+          },
+        ),
+      );
+    }
+
+    // Always add 401 error handler for production
     dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
-          dev.log(
-            '[REQUEST] ${options.method} ${options.path}\n'
-            'Base URL: ${options.baseUrl}\n'
-            'Full URL: ${options.uri}\n'
-            'Headers: ${options.headers}\n'
-            'Query Params: ${options.queryParameters}',
-            name: 'API_DETAILED',
-          );
-
-          final empId = dio.options.headers['X-EMP-ID'];
-          if (empId != null) {
-            options.queryParameters[QueryParams.actorEmpId] = empId;
-            dev.log('[REQUEST] Added Actor EMP ID: $empId', name: 'API_DETAILED');
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401) {
+            // Clear tokens and redirect to login
+            await SecureStorageHelper.clearAllTokens();
+            dev.log('[AUTH] Session expired - Token cleared', name: 'API_AUTH');
+            // Note: Navigation should be handled by the caller/observer
           }
-          return handler.next(options);
+          return handler.next(error);
         },
-        onResponse: (response, handler) {
-          dev.log(
-            '[RESPONSE] ${response.statusCode}\n'
-            'URL: ${response.requestOptions.uri}\n'
             'Data: ${response.data}',
             name: 'API_DETAILED',
           );
