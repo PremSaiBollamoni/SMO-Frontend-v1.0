@@ -32,7 +32,9 @@
       "Bash(python3)",
       "Bash(cp /tmp/Hourly_Production_Report.xlsx \"/c/Users/HP/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/deac93ab-060e-423f-91b3-e6fef2b00558/e2e90cc8-a6dd-4003-bc8c-909505257088/\")",
       "Bash(cp /tmp/Hourly_Production_Report.xlsx \"C:\\\\Users\\\\HP\\\\SMOBZAV2\\\\\")",
-      "Bash(python create_report.py)"
+      "Bash(python create_report.py)",
+      "PowerShell(node --version)",
+      "PowerShell(py --version)"
     ]
   }
 }
