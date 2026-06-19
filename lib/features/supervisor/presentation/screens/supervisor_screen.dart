@@ -7,18 +7,13 @@ import '../../../../core/widgets/dashboard_shell.dart';
 import '../../../../login_screen.dart';
 import '../../../../profile_tab.dart';
 import '../controller/supervisor_controller.dart';
-import '../widgets/dashboard_view.dart';
-import '../widgets/wip_stats_view.dart';
-import '../widgets/operator_performance_view.dart';
-import '../widgets/reassign_work_view.dart';
-import '../widgets/workflow_monitoring_view.dart';
-import 'temp_qr_management_screen.dart';
-import 'break_window_screen.dart';
-import '../../../../core/utils/switch_role_helper.dart';
-import '../../../../features/process_planner/presentation/widgets/approved_process_plans_view.dart';
-import '../../../../features/analytics/analytics_screen.dart';
+import '../../../attendance/presentation/screens/attendance_screen.dart';
+import '../../../hr/presentation/screens/sam_management_screen.dart';
+import '../../../hr/presentation/screens/station_management_screen.dart';
+import 'station_list_screen.dart';
+import 'assignment_history_screen.dart';
+import 'efficiency_screen.dart';
 
-/// Supervisor Screen - Activity-driven dashboard home.
 class SupervisorScreen extends StatefulWidget {
   final String empId;
   final String employeeName;
@@ -39,14 +34,15 @@ class SupervisorScreen extends StatefulWidget {
 
 class _SupervisorScreenState extends State<SupervisorScreen> {
   late final SupervisorController _controller;
+  late final List<String> _acts;
 
   @override
   void initState() {
     super.initState();
     ApiClient().setEmpId(widget.empId);
+    _acts = widget.activities.map((a) => a.toUpperCase()).toList();
     _controller = Get.put(SupervisorController());
     _controller.initialize(widget.empId, widget.employeeName, widget.role);
-    _controller.fetchFloorInsights();
   }
 
   @override
@@ -54,6 +50,8 @@ class _SupervisorScreenState extends State<SupervisorScreen> {
     Get.delete<SupervisorController>();
     super.dispose();
   }
+
+  bool _has(String activity) => _acts.contains(activity);
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -67,98 +65,88 @@ class _SupervisorScreenState extends State<SupervisorScreen> {
   }
 
   List<FeatureGroup> _buildGroups() {
-    final acts = widget.activities;
-    final monitoring = <FeatureCard>[];
-    final operations = <FeatureCard>[];
-    final planning = <FeatureCard>[];
-    final account = <FeatureCard>[];
+    final tracking = <FeatureCard>[];
+    final management = <FeatureCard>[];
 
-    // Monitoring group
-    if (acts.contains('SUPERVISOR_MONITOR_WIP')) {
-      monitoring.add(FeatureCard(
-        icon: Icons.dashboard_outlined,
-        label: 'Monitor WIP',
-        screen: const DashboardView(),
+    if (_has('SUPERVISOR_WORK_ASSIGNMENT')) {
+      tracking.add(FeatureCard(
+        icon: Icons.qr_code_scanner_outlined,
+        label: 'Work Assignment',
+        screen: StationListScreen(supervisorEmpId: widget.empId),
         color: AppTheme.primary,
+        hasOwnScaffold: true,
       ));
-      monitoring.add(FeatureCard(
+    }
+
+    if (_has('SUPERVISOR_EFFICIENCY')) {
+      tracking.add(FeatureCard(
         icon: Icons.bar_chart_outlined,
-        label: 'WIP Stats',
-        screen: const WipStatsView(),
-        color: AppTheme.info,
-      ));
-      monitoring.add(FeatureCard(
-        icon: Icons.monitor_outlined,
-        label: 'Workflow Monitor',
-        screen: WorkflowMonitoringView(empId: widget.empId),
-        color: AppTheme.tertiary,
-      ));
-    }
-    if (acts.contains('SUPERVISOR_VIEW_OPERATOR_PERFORMANCE')) {
-      monitoring.add(FeatureCard(
-        icon: Icons.speed_outlined,
-        label: 'Operator Performance',
-        screen: const OperatorPerformanceView(),
-        color: AppTheme.secondary,
+        label: 'Efficiency',
+        screen: EfficiencyScreen(supervisorEmpId: widget.empId),
+        color: const Color(0xFF7B61FF),
+        hasOwnScaffold: true,
       ));
     }
 
-    // Operations group
-    if (acts.contains('MANAGE_TEMP_QR_CODES')) {
-      operations.add(FeatureCard(
-        icon: Icons.qr_code_scanner,
-        label: 'Temp QR Codes',
-        screen: TempQrManagementScreen(empId: widget.empId),
-        color: AppTheme.primary,
-      ));
-    }
-    if (acts.contains('SUPERVISOR_REASSIGN_WORK')) {
-      operations.add(FeatureCard(
-        icon: Icons.swap_horiz_outlined,
-        label: 'Reassign Work',
-        screen: const ReassignWorkView(),
-        color: AppTheme.secondary,
-      ));
-    }
-    if (acts.contains('SUPERVISOR_MONITOR_WIP') || acts.contains('PP_VIEW_ALL')) {
-      operations.add(FeatureCard(
-        icon: Icons.free_breakfast_outlined,
-        label: 'Break Windows',
-        screen: const BreakWindowScreen(),
+    if (_has('SUPERVISOR_HISTORY')) {
+      tracking.add(FeatureCard(
+        icon: Icons.history_outlined,
+        label: 'Assignment History',
+        screen: AssignmentHistoryScreen(supervisorEmpId: widget.empId),
         color: AppTheme.tertiary,
+        hasOwnScaffold: true,
       ));
     }
 
-    // Planning group
-    if (acts.contains('PP_VIEW_ALL')) {
-      planning.add(FeatureCard(
-        icon: Icons.account_tree_outlined,
-        label: 'Process Plans',
-        screen: ApprovedProcessPlansView(empId: widget.empId, activities: widget.activities),
+    if (_has('SUPERVISOR_ATTENDANCE')) {
+      management.add(FeatureCard.lazy(
+        icon: Icons.fact_check_outlined,
+        label: 'Attendance',
+        screenBuilder: () => AttendanceScreen(supervisorEmpId: widget.empId),
         color: AppTheme.primary,
       ));
     }
 
-    // Account
-    account.add(FeatureCard(
-      icon: Icons.person_outline,
-      label: 'My Profile',
-      screen: ProfileTab(empId: widget.empId.trim()),
-      color: AppTheme.onSurfaceVariant,
-    ));
-    account.add(FeatureCard(
-      icon: Icons.analytics_outlined,
-      label: 'Analytics',
-      screen: const AnalyticsScreen(),
-      color: AppTheme.info,
-    ));
+    if (_has('SUPERVISOR_LINE_BALANCING')) {
+      management.add(FeatureCard(
+        icon: Icons.balance_outlined,
+        label: 'Line Balancing',
+        screen: const _PlaceholderScreen(title: 'Line Balancing', icon: Icons.balance_outlined),
+        color: AppTheme.secondary,
+      ));
+    }
 
-    final groups = <FeatureGroup>[];
-    if (monitoring.isNotEmpty) groups.add(FeatureGroup(title: 'Monitoring', cards: monitoring));
-    if (operations.isNotEmpty) groups.add(FeatureGroup(title: 'Operations', cards: operations));
-    if (planning.isNotEmpty) groups.add(FeatureGroup(title: 'Planning', cards: planning));
-    groups.add(FeatureGroup(title: 'Account', cards: account));
-    return groups;
+    if (_has('SUPERVISOR_WORK_ASSIGNMENT')) {
+      management.add(FeatureCard(
+        icon: Icons.timer_outlined,
+        label: 'Operations & SAM',
+        screen: const SamManagementScreen(),
+        color: const Color(0xFFE65100),
+        hasOwnScaffold: true,
+      ));
+      management.add(FeatureCard(
+        icon: Icons.workspaces_outlined,
+        label: 'Stations',
+        screen: const StationManagementScreen(),
+        color: const Color(0xFF00897B),
+        hasOwnScaffold: true,
+      ));
+    }
+
+    final account = <FeatureCard>[
+      FeatureCard(
+        icon: Icons.person_outline,
+        label: 'My Profile',
+        screen: ProfileTab(empId: widget.empId.trim()),
+        color: AppTheme.onSurfaceVariant,
+      ),
+    ];
+
+    return [
+      if (tracking.isNotEmpty) FeatureGroup(title: 'Tracking', cards: tracking),
+      if (management.isNotEmpty) FeatureGroup(title: 'Management', cards: management),
+      FeatureGroup(title: 'Account', cards: account),
+    ];
   }
 
   @override
@@ -171,6 +159,28 @@ class _SupervisorScreenState extends State<SupervisorScreen> {
       roleIcon: Icons.factory_outlined,
       groups: _buildGroups(),
       onLogout: _logout,
+    );
+  }
+}
+
+class _PlaceholderScreen extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  const _PlaceholderScreen({required this.title, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 64, color: AppTheme.onSurfaceVariant),
+          const SizedBox(height: 16),
+          Text(title, style: AppTheme.headlineSmall),
+          const SizedBox(height: 8),
+          Text('Coming soon', style: AppTheme.bodyMedium.copyWith(color: AppTheme.onSurfaceVariant)),
+        ],
+      ),
     );
   }
 }
