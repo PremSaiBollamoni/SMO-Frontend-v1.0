@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/switch_role_helper.dart';
 
-/// A feature card definition for the dashboard home grid
 class FeatureCard {
   final IconData icon;
   final String label;
@@ -10,6 +9,8 @@ class FeatureCard {
   final Widget Function() screenBuilder;
   final Color? color;
   final Widget? fab;
+  // Set true when the screen already returns a full Scaffold with its own AppBar
+  final bool hasOwnScaffold;
 
   FeatureCard({
     required this.icon,
@@ -18,6 +19,7 @@ class FeatureCard {
     this.subtitle,
     this.color,
     this.fab,
+    this.hasOwnScaffold = false,
   }) : screenBuilder = (() => screen);
 
   const FeatureCard.lazy({
@@ -27,19 +29,16 @@ class FeatureCard {
     this.subtitle,
     this.color,
     this.fab,
+    this.hasOwnScaffold = false,
   });
 }
 
-/// A group of feature cards with a section title
 class FeatureGroup {
   final String title;
   final List<FeatureCard> cards;
-
   const FeatureGroup({required this.title, required this.cards});
 }
 
-/// Reusable Dashboard Shell — replaces drawer-based navigation with a
-/// card-grid home screen. Each card opens its feature full-screen.
 class DashboardShell extends StatefulWidget {
   final String title;
   final String employeeName;
@@ -65,221 +64,209 @@ class DashboardShell extends StatefulWidget {
 }
 
 class _DashboardShellState extends State<DashboardShell> {
-  void _openFeature(FeatureCard card) {
-    debugPrint('[DASHBOARD] Opening feature: ${card.label}');
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => _FeatureScreenWrapper(
-          title: card.label,
-          screen: card.screenBuilder(),
-          fab: card.fab,
-        ),
-      ),
-    ).then((_) {
-      debugPrint('[DASHBOARD] Returned from: ${card.label}');
-      if (mounted) setState(() {});
+  bool _hasMultipleRoles = false;
+
+  @override
+  void initState() {
+    super.initState();
+    SwitchRoleHelper.hasMultipleRoles().then((v) {
+      if (mounted) setState(() => _hasMultipleRoles = v);
     });
+  }
+
+  void _openFeature(FeatureCard card) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => _FeatureScreenWrapper(
+        title: card.label,
+        screen: card.screenBuilder(),
+        fab: card.fab,
+        hasOwnScaffold: card.hasOwnScaffold,
+      ),
+    )).then((_) { if (mounted) setState(() {}); });
   }
 
   @override
   Widget build(BuildContext context) {
+    final initials = widget.employeeName.trim().split(' ')
+        .take(2).map((w) => w.isNotEmpty ? w[0].toUpperCase() : '').join();
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        automaticallyImplyLeading: false,
-        actions: [
-          // Switch Role button (only if multiple roles)
-          FutureBuilder<bool>(
-            future: SwitchRoleHelper.hasMultipleRoles(),
-            builder: (ctx, snap) {
-              if (snap.data != true) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Icons.switch_account),
-                tooltip: 'Switch Role',
-                onPressed: () => SwitchRoleHelper.showRolePicker(context),
-              );
-            },
-          ),
-          // Logout
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: widget.onLogout,
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // User header card
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.primary, AppTheme.primaryVariant],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primary.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+      backgroundColor: AppTheme.background,
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppTheme.primary, AppTheme.primaryVariant, Color(0xFF062229)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: Colors.white.withValues(alpha: 0.2),
-                      child: Icon(widget.roleIcon, color: Colors.white, size: 28),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.employeeName,
-                            style: AppTheme.titleLarge.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${widget.role} • ID ${widget.empId}',
-                            style: AppTheme.bodySmall.copyWith(
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 12, 28),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      const Spacer(),
+                      if (_hasMultipleRoles)
+                        _HeaderIconBtn(Icons.switch_account_outlined,
+                            () => SwitchRoleHelper.showRolePicker(context)),
+                      _HeaderIconBtn(Icons.logout_rounded, widget.onLogout),
+                    ]),
+                    const SizedBox(height: 4),
+                    Row(children: [
+                      Container(
+                        width: 56, height: 56,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                        ),
+                        child: Center(
+                          child: Text(initials,
+                              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 14),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(widget.employeeName,
+                            style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800),
+                            overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 5),
+                        Row(children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppTheme.secondary.withValues(alpha: 0.28),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppTheme.secondary.withValues(alpha: 0.5)),
+                            ),
+                            child: Text(widget.role,
+                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                          ),
+                          const SizedBox(width: 8),
+                          Text('ID: ${widget.empId}',
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 12)),
+                        ]),
+                      ])),
+                    ]),
+                  ]),
                 ),
               ),
             ),
-            // Feature groups
-            ...widget.groups.expand((group) => [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                  child: Text(
-                    group.title,
-                    style: AppTheme.titleMedium.copyWith(
-                      color: AppTheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
+          ),
+          ...widget.groups.expand((group) => [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                child: Row(children: [
+                  Container(width: 3, height: 15,
+                      decoration: BoxDecoration(color: AppTheme.secondary, borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(width: 10),
+                  Text(group.title.toUpperCase(),
+                      style: AppTheme.bodySmall.copyWith(
+                          fontWeight: FontWeight.w800, letterSpacing: 1.5, color: AppTheme.onSurfaceVariant)),
+                ]),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 126,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: group.cards.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (_, i) => _FeatureTile(
+                    card: group.cards[i],
+                    onTap: () => _openFeature(group.cards[i]),
                   ),
                 ),
               ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 160,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.0,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _FeatureTile(
-                      card: group.cards[index],
-                      onTap: () => _openFeature(group.cards[index]),
-                    ),
-                    childCount: group.cards.length,
-                  ),
-                ),
-              ),
-            ]),
-            // Bottom spacing
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          ],
-        ),
+            ),
+          ]),
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 28),
+              child: Center(child: Text('Powered by GramTarang Technologies',
+                  style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 11))),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Individual feature tile widget
+class _HeaderIconBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _HeaderIconBtn(this.icon, this.onTap);
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+        icon: Icon(icon, color: Colors.white.withValues(alpha: 0.85), size: 22),
+        onPressed: onTap,
+      );
+}
+
 class _FeatureTile extends StatelessWidget {
   final FeatureCard card;
   final VoidCallback onTap;
-
   const _FeatureTile({required this.card, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final color = card.color ?? AppTheme.primary;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: AppTheme.surfaceVariant,
-              width: 1,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 100,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color, color.withValues(alpha: 0.75)],
+            begin: Alignment.topLeft, end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
+              child: Icon(card.icon, color: Colors.white, size: 20),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(card.icon, color: color, size: 26),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Text(
-                  card.label,
-                  style: AppTheme.bodySmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
+            const Spacer(),
+            Text(card.label,
+                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700, height: 1.3),
+                maxLines: 2, overflow: TextOverflow.ellipsis),
+          ]),
         ),
       ),
     );
   }
 }
 
-/// Wrapper that shows a feature screen with an AppBar and back button
 class _FeatureScreenWrapper extends StatelessWidget {
   final String title;
   final Widget screen;
   final Widget? fab;
-
-  const _FeatureScreenWrapper({required this.title, required this.screen, this.fab});
+  final bool hasOwnScaffold;
+  const _FeatureScreenWrapper({
+    required this.title,
+    required this.screen,
+    this.fab,
+    this.hasOwnScaffold = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (hasOwnScaffold) return screen;
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: screen,
