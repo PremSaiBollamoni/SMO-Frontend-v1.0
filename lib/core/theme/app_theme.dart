@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Centralized Theme Configuration — Light mode only
 class AppTheme {
@@ -29,8 +28,7 @@ class AppTheme {
   static const Color darkSurfaceVariant = surfaceVariant;
   static const Color darkOnSurfaceVariant = onSurfaceVariant;
 
-  // Font family
-  static String get _fontFamily => GoogleFonts.nunitoSans().fontFamily!;
+  static const String _fontFamily = 'sans-serif';
 
   // Text styles
   static TextStyle get displayLarge => TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: onSurface, height: 1.2, fontFamily: _fontFamily);
@@ -151,7 +149,6 @@ class AppTheme {
   // Theme data (light only)
   static ThemeData get themeData => ThemeData(
     primaryColor: primary,
-    fontFamily: _fontFamily,
     colorScheme: const ColorScheme(
       brightness: Brightness.light,
       primary: primary, onPrimary: onPrimary,
@@ -167,12 +164,22 @@ class AppTheme {
     floatingActionButtonTheme: floatingActionButtonTheme,
     bottomNavigationBarTheme: bottomNavigationBarTheme,
     chipTheme: chipTheme,
-    textTheme: TextTheme(
-      displayLarge: displayLarge, displayMedium: displayMedium, displaySmall: displaySmall,
-      headlineLarge: headlineLarge, headlineMedium: headlineMedium, headlineSmall: headlineSmall,
-      titleLarge: titleLarge, titleMedium: titleMedium, titleSmall: titleSmall,
-      bodyLarge: bodyLarge, bodyMedium: bodyMedium, bodySmall: bodySmall,
-      labelLarge: labelLarge, labelMedium: labelMedium, labelSmall: labelSmall,
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: onSurface, height: 1.2),
+      displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: onSurface, height: 1.2),
+      displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: onSurface, height: 1.2),
+      headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: onSurface, height: 1.3),
+      headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: onSurface, height: 1.3),
+      headlineSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: onSurface, height: 1.4),
+      titleLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: onSurface, height: 1.4),
+      titleMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: onSurface, height: 1.4),
+      titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: onSurface, height: 1.4),
+      bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: onSurface, height: 1.5),
+      bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: onSurface, height: 1.5),
+      bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: onSurface, height: 1.5),
+      labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: onPrimary, height: 1.5),
+      labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: onPrimary, height: 1.5),
+      labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: onPrimary, height: 1.5),
     ),
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
