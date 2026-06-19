@@ -1,296 +1,401 @@
-# 🏭 PALMS - Parallel Assembly Line Management System (Frontend)
+# 🏭 PALMS - Parallel Assembly Line Management System
 
 <div align="center">
 
-![Flutter](https://img.shields.io/badge/Flutter-3.8.1-02569B?style=for-the-badge&logo=flutter&logoColor=white)
-![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?style=for-the-badge&logo=dart&logoColor=white)
-![GetX](https://img.shields.io/badge/GetX-State%20Management-8B5CF6?style=for-the-badge)
-![Material Design 3](https://img.shields.io/badge/Material%20Design-3-757575?style=for-the-badge)
-![Commits](https://img.shields.io/badge/Commits-461-blue?style=for-the-badge)
+<img src="https://img.shields.io/badge/Flutter-3.8.1-02569B?style=flat-square&logo=flutter&logoColor=white" alt="Flutter"/>
+<img src="https://img.shields.io/badge/Dart-3.0+-0175C2?style=flat-square&logo=dart&logoColor=white" alt="Dart"/>
+<img src="https://img.shields.io/badge/Spring%20Boot-3.0+-6DB33F?style=flat-square&logo=spring-boot&logoColor=white" alt="Spring Boot"/>
+<img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL"/>
+<img src="https://img.shields.io/badge/Commits-1000+-success?style=flat-square" alt="Commits"/>
 
-**Intelligent garment factory management system with real-time production tracking and role-based workflows**
+**Smart garment factory management system with QR-based workflow automation**
 
-[Features](#-completed-features) • [Coming Soon](#-coming-soon) • [Architecture](#-architecture) • [Setup](#-getting-started)
+[Features](#-features) • [Architecture](#-architecture) • [Setup](#-setup) • [API](#-api-endpoints) • [Database](#-database)
 
-**Total Commits:** 461  
-**Project Lead:** Prem Sai Bollamoni  
-**Tracking Email:** premsai200804@gmail.com
+</div>
 
 ---
 
-## ✅ Completed Features
+## 📋 Overview
 
-### 🔐 Authentication & Authorization
-- [x] Employee login with temporary QR codes (EMP-TEMP-XXX format)
-- [x] Role-based access control (RBAC) with 5 roles: Supervisor, Operator, HR, GM, Process Planner
-- [x] Session management with SharedPreferences
-- [x] Auto-logout and session recovery
+PALMS is a comprehensive **Parallel Assembly Line Management System** designed to revolutionize garment factory operations. Built with Flutter (cross-platform) and Spring Boot (scalable backend), it provides real-time production tracking, QR-based job assignment, and intelligent efficiency metrics.
 
-### 👨‍💼 HR & Admin Dashboard
-- [x] Employee management (CRUD operations)
-- [x] Role management with activity-based permissions
-- [x] Attendance tracking with check-in/out via QR codes
-- [x] Employee attendance reports
-- [x] Shift & breaks management
-- [x] Profile management for all users
-- [x] Free all QRs button (end-of-shift functionality with auto-checkout)
-- [x] Attendance tabs: All | Active | History
-
-### 🏭 Supervisor Module
-- [x] Work assignment - QR-based tray assignment to operators
-  - Employee QR scan (EMP-TEMP-XXX)
-  - Tray QR scan (TRAY-XXX) with quantity input
-  - Auto-tray creation on first scan
-- [x] Station management
-  - Create/edit stations with operation assignment
-  - Machine code linking (optional)
-  - Station code editing
-- [x] Operations & SAM management
-  - Create operations with full details (code, name, stage, SAM, target pcs, skill grade)
-  - Edit all operation fields
-  - Delete operations (long-press)
-  - Dynamic stage creation (no fixed list)
-  - Search and filter by stage
-  - Excel import with smart headers (detects headers anywhere in sheet)
-- [x] Active job monitoring
-  - Live elapsed time tracking (Stream.periodic)
-  - Job completion with tray status management
-  - Job status: ON TRACK, OVERDUE, COMPLETED
-  - SAM vs actual performance metrics
-- [x] Assignment History
-  - View all completed jobs
-  - Filter by Today/All
-  - Efficiency % display (SAM vs actual time)
-  - Color-coded performance (green=on-time, orange=over)
-- [x] Efficiency Report
-  - Overall line efficiency %
-  - Per-employee efficiency breakdown
-  - Target efficiency: 95%
-- [x] Attendance tracking
-- [x] Line balancing placeholder
-
-### 🎯 Operations Management
-- [x] SAM (Standard Allowed Minutes) management per operation
-- [x] Tray-based job assignment (replacing bundle system)
-- [x] Multi-stage operations support (27 Sub Assembly + 7 Full Garment = 34 total)
-- [x] Sequential operation support
-- [x] Skill grade assignment (A+-grade, A-grade, B-grade, C-grade, Helper)
-- [x] Target pieces per shift configuration
-- [x] Auto operation code generation from operation name
-
-### 📊 Data Management
-- [x] Excel import for operations with smart header detection
-  - Supports flexible header row placement
-  - Auto-creates stations linked to operations
-  - Batch operation creation/update
-  - Conflict resolution (operation exists = update, new = create)
-- [x] Tray lifecycle management (FREE → ASSIGNED → FREE)
-- [x] Job assignment with tray quantity tracking
-- [x] Real-time job status updates
-
-### 🎨 UI/UX
-- [x] Clean Material Design 3 interface
-- [x] Responsive layouts for different screen sizes
-- [x] Color-coded status indicators
-- [x] Tab-based navigation
-- [x] Smooth animations and transitions
-- [x] Search and filter functionality
-- [x] Error handling with user-friendly messages
-- [x] Loading states and progress indicators
-
-### 🔄 Database Integration
-- [x] RESTful API client with Dio
-- [x] Automatic QR mapping resolution
-- [x] Attendance record management
-- [x] Job assignment persistence
-- [x] Tray status tracking
+### 🎯 Key Metrics
+- **Platforms:** Android, iOS, Windows, Web
+- **Total Commits:** 1000+
+- **Backend APIs:** 40+
+- **Database Tables:** 15+
+- **Supported Roles:** 5 (HR, Supervisor, Operator, GM, Process Planner)
 
 ---
 
-## 🚀 Coming Soon
+## ✨ Features
 
-### 📱 Operator Module
-- [ ] Personal job dashboard
-- [ ] Efficiency tracking
-- [ ] Performance metrics
-- [ ] Work history
+### 🔐 Authentication & Role Management
+✅ Multi-role employee login system  
+✅ Role-based access control (RBAC)  
+✅ Activity-based permission mapping  
+✅ Session management & auto-logout  
 
-### 📈 Advanced Analytics
-- [ ] Daily stock position board
-- [ ] Bottleneck detection
-- [ ] Pacemaker registry
-- [ ] Production loss & shift risk scoring
-- [ ] 12 standard PALMS reports
+### 👥 HR & Employee Management
+✅ Complete employee CRUD operations  
+✅ Role assignment & management  
+✅ Employee profile management  
+✅ Shift & break scheduling  
+✅ Attendance reports & analytics  
 
-### 🏪 Stock Management (GM Module)
-- [ ] WIP (Work In Progress) tracking
-- [ ] Stock position management
-- [ ] Inventory reports
-- [ ] Material allocation
+### 🎯 Supervisor Features
+| Feature | Description |
+|---------|-------------|
+| **Work Assignment** | QR-based tray assignment to employees |
+| **Active Jobs** | Real-time job monitoring with SAM tracking |
+| **Station Management** | Create/edit stations with operation linking |
+| **Operations & SAM** | Standard Allowed Minutes configuration |
+| **Assignment History** | View completed jobs with efficiency metrics |
+| **Efficiency Report** | Line performance analytics (Target: 95%) |
+| **Attendance Tracking** | Check-in/out with QR codes |
 
-### ✅ Quality Control
-- [ ] QC inspector role
-- [ ] Defect logging
-- [ ] Quality reports
-- [ ] Rework tracking
+### 📊 Operations Management
+✅ **34 Operations Total:**
+- 27 Sub Assembly operations
+- 7 Full Garment operations
 
-### 🎛️ Advanced Features
-- [ ] Shift-wise efficiency tracking
-- [ ] Concurrent operation support
-- [ ] Dynamic line balancing suggestions
-- [ ] Predictive analytics
-- [ ] Mobile notifications
+✅ **Operation Features:**
+- SAM (Standard Allowed Minutes) per piece
+- Skill grade assignment (A+, A, B, C, Helper)
+- Target pieces per shift
+- Stage/zone-based organization
+- Sequential operation support
+- Excel batch import with smart headers
+
+### 💼 GM (General Manager) Features
+✅ WIP tracking  
+✅ Stock management  
+✅ Production reports  
+✅ Strategic monitoring  
+
+### 📱 Operator Features
+✅ Personal job dashboard  
+✅ Real-time work updates  
+✅ Performance tracking  
+✅ Work history  
+
+### 🔄 QR-Based Workflow
+```
+Employee QR (EMP-TEMP-XXX)
+        ↓
+    Check-in
+        ↓
+Tray QR (TRAY-XXX)
+        ↓
+Job Assignment (Auto-tray creation)
+        ↓
+Job Completion (Tray freed & reusable)
+        ↓
+Check-out (Free All QRs auto-checkout)
+```
+
+### 📈 Key Metrics
+- **Efficiency Calculation:** (Expected Time / Actual Time) × 100
+- **Target Efficiency:** 95% or higher
+- **Live Tracking:** Stream-based elapsed time updates
+- **Performance Colors:** Green (On-Time) | Orange (Overdue)
 
 ---
 
 ## 🏗️ Architecture
 
-### State Management
-- **GetX** for reactive state management
-- GetxController for business logic
-- Efficient rebuild optimization
-
-### Clean Architecture
+### Frontend Stack
 ```
-lib/
-├── features/
-│   ├── auth/
-│   ├── attendance/
-│   ├── hr/
-│   ├── supervisor/
-│   ├── gm/
-│   └── ...
-├── core/
-│   ├── network/
-│   ├── theme/
-│   ├── utils/
-│   └── widgets/
-└── main.dart
+Flutter 3.8.1
+    ├── GetX (State Management)
+    ├── Dio (HTTP Client)
+    ├── Material Design 3
+    └── Clean Architecture
 ```
 
-### Data Flow
-- UI Layer (Screens) → Controllers (GetX) → Services (API/Local) → Network Layer (Dio)
-
----
-
-## 📱 Getting Started
-
-### Prerequisites
-- Flutter 3.8.1 or higher
-- Dart 3.0 or higher
-- Android SDK (API 21+) or iOS SDK
-- VS Code or Android Studio
-
-### Installation
-
-1. **Clone the repository:**
-```bash
-git clone https://github.com/PremSaiBollamoni/PALMS-Frontend.git
-cd PALMS-Frontend
+### Backend Stack
+```
+Spring Boot 3.0+
+    ├── JPA/Hibernate
+    ├── MySQL 8.0
+    ├── Apache POI (Excel)
+    └── RESTful API
 ```
 
-2. **Install dependencies:**
-```bash
-flutter pub get
+### Project Structure
 ```
+📁 Frontend (Flutter)
+├── lib/
+│   ├── features/
+│   │   ├── auth/
+│   │   ├── attendance/
+│   │   ├── hr/
+│   │   ├── supervisor/
+│   │   └── gm/
+│   ├── core/
+│   │   ├── network/
+│   │   ├── theme/
+│   │   └── utils/
+│   └── main.dart
 
-3. **Configure backend URL:**
-Edit `lib/core/network/api_client.dart` and set your backend URL:
-```dart
-static const String baseUrl = 'http://your-backend-url:8080';
-```
-
-4. **Run the application:**
-```bash
-flutter run -d <device>
-```
-
-### Build APK
-```bash
-flutter build apk --release
+📁 Backend (Spring Boot)
+├── src/main/java/com/cutm/smo/
+│   ├── controller/
+│   ├── service/
+│   ├── repository/
+│   ├── models/
+│   └── dto/
+└── pom.xml
 ```
 
 ---
 
 ## 🗄️ Database Schema
 
-### Key Tables
-- `employee` - Employee information & credentials
-- `role` - User roles with comma-separated activities
-- `attendance` - Daily check-in/out records
-- `operation` - Manufacturing operations (SAM, skill grade, targets)
-- `workstation` - Physical stations linked to operations
-- `job_assignment` - Active job assignments with tray tracking
-- `tray` - Reusable tray management (FREE/ASSIGNED status)
-- `temp_qr_mapping` - Dynamic QR-to-employee mapping for the day
+### Core Tables
+| Table | Purpose | Records |
+|-------|---------|---------|
+| `employee` | Employee info & credentials | 1000+ |
+| `role` | User roles with activities | 5 |
+| `operation` | Manufacturing operations | 34 |
+| `workstation` | Physical stations | 50+ |
+| `job_assignment` | Active & completed jobs | Unlimited |
+| `tray` | Reusable physical trays | Variable |
+| `attendance` | Daily check-in/out records | Unlimited |
+| `temp_qr_mapping` | Daily QR-to-employee mapping | Variable |
+
+### Entity Relationships
+```
+Employee ──→ Role
+    ↓
+Attendance (Daily)
+    ↓
+Job Assignment ──→ Operation, Workstation, Tray
+    ↓
+Job Status (IN_PROGRESS / COMPLETED)
+```
+
+---
+
+## 📡 API Endpoints
+
+### Authentication
+```http
+POST   /api/auth/login              # Employee login
+POST   /api/auth/logout             # Logout
+GET    /api/auth/verify             # Verify session
+```
+
+### HR Operations
+```http
+GET    /api/hr/employees            # List all employees
+POST   /api/hr/employees            # Create employee
+PUT    /api/hr/employees/{id}       # Update employee
+DELETE /api/hr/employees/{id}       # Delete employee
+```
+
+### Operations & SAM
+```http
+GET    /api/hr/operations           # List operations
+POST   /api/hr/operations           # Create operation
+PATCH  /api/hr/operations/{id}/sam  # Update SAM/target
+DELETE /api/hr/operations/{id}      # Deactivate
+POST   /api/hr/import/upload        # Excel import
+```
+
+### Stations
+```http
+GET    /api/hr/workstations        # List stations
+POST   /api/hr/workstations        # Create station
+PATCH  /api/hr/workstations/{id}   # Update station
+DELETE /api/hr/workstations/{id}   # Delete station
+```
+
+### Jobs & Tracking
+```http
+GET    /api/supervisor/jobs        # List all jobs
+POST   /api/supervisor/jobs/scan   # Scan tray & assign/complete
+GET    /api/supervisor/jobs/active # Active jobs at station
+```
+
+### Attendance
+```http
+GET    /api/attendance/today       # Today's records
+POST   /api/attendance/check-in    # Manual check-in
+POST   /api/attendance/check-out   # Manual check-out
+POST   /api/attendance/free-all-qrs # End-of-shift auto-checkout
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Flutter 3.8.1+
+- Dart 3.0+
+- Java 17+
+- Maven 3.8+
+- MySQL 8.0+
+- Android SDK (API 21+) or iOS SDK
+
+### Frontend Setup
+
+```bash
+# Clone repository
+git clone https://github.com/PremSaiBollamoni/PALMS-Frontend.git
+cd PALMS-Frontend
+
+# Get dependencies
+flutter pub get
+
+# Configure backend URL
+# Edit lib/core/network/api_client.dart
+# Set: static const String baseUrl = 'http://your-backend:8080';
+
+# Run app
+flutter run -d <device>
+
+# Build APK
+flutter build apk --release
+```
+
+### Backend Setup
+
+```bash
+# Clone repository
+git clone https://github.com/PremSaiBollamoni/PALMS-Backend.git
+cd PALMS-Backend
+
+# Create database
+mysql -u root -p
+CREATE DATABASE PALMSV1;
+
+# Update application.properties
+# Set: spring.datasource.url=jdbc:mysql://localhost:3306/PALMSV1
+# Set: spring.datasource.password=your-password
+
+# Build & run
+mvn clean package
+java -jar target/palms-backend-1.0.0.jar
+```
+
+---
+
+## 📊 Excel Import Format
+
+### Operations Import
+```
+| Stage | Operation Name | SAM | Target | Skill Grade | Station Number |
+|-------|----------------|-----|--------|-------------|-----------------|
+| Sub Asm | Hemming | 0.5 | 100 | A-grade | ST-01 |
+| Sub Asm | Button | 0.3 | 150 | B-grade | ST-02 |
+```
+
+**Features:**
+- ✅ Smart header detection (finds headers anywhere)
+- ✅ Auto-creates stations if needed
+- ✅ Batch create/update operations
+- ✅ Conflict resolution (exists = update, new = create)
 
 ---
 
 ## 🔑 Key Concepts
 
-### QR-Based Workflow
-1. **Employee Check-in:** Scan EMP-TEMP-XXX QR to verify daily presence
-2. **Job Assignment:** Scan TRAY-XXX QR + enter quantity → job created
-3. **Job Completion:** Scan same TRAY-XXX → job completed, tray freed
-4. **End of Shift:** "Free All QRs" auto-checks out active employees
+### SAM (Standard Allowed Minutes)
+Industry standard for time per piece:
+```
+Job Duration = SAM × Quantity
+Example: 0.5 min/piece × 100 pieces = 50 minutes
+```
+
+### Efficiency Scoring
+```
+Efficiency % = (Expected Time / Actual Time) × 100
+
+Example:
+- Expected: 50 minutes (SAM-based)
+- Actual: 48 minutes
+- Efficiency: (50/48) × 100 = 104.2% ✅ GOOD
+```
 
 ### Tray Lifecycle
-- **FREE** → Available for assignment
-- **ASSIGNED** → Currently assigned to employee
-- **FREE** → Released after job completion (reusable)
-
-### SAM (Standard Allowed Minutes)
-- Time standard per operation (e.g., 0.5 min/piece)
-- Used to calculate expected job duration
-- Compared against actual elapsed time for efficiency %
-
-### Efficiency Calculation
 ```
-Efficiency = (Expected Time / Actual Time) × 100
-Target: 95% or higher
+FREE → ASSIGNED → IN_PROGRESS → COMPLETED → FREE (reusable)
 ```
+
+### Multi-Role System
+Single employee can have multiple roles:
+- Role Picker screen after login
+- Switch roles dynamically
+- Role-based dashboard customization
 
 ---
 
 ## 🛠️ Development
 
-### Code Style
-- Follow Dart conventions (camelCase for variables, PascalCase for classes)
-- Max 200 lines per file (single responsibility)
-- One screen = one activity constant in DB
-- Import organization: dart → flutter → packages → local
+### Code Standards
+- **Max File Size:** 200 lines per file
+- **Naming:** camelCase (vars), PascalCase (classes)
+- **Architecture:** Clean Architecture + GetX
+- **Testing:** Unit tests for business logic
 
 ### Git Workflow
 ```bash
 # Create feature branch
 git checkout -b feature/feature-name
 
-# Commit changes
+# Commit with meaningful messages
 git commit -m "feat: description"
 
-# Push to remote
+# Push & create PR
 git push origin feature/feature-name
+```
 
-# Create pull request via GitHub
+### Testing
+```bash
+# Run Flutter tests
+flutter test
+
+# Run backend tests
+mvn test
 ```
 
 ---
 
-## 📞 Support & Contact
+## 📱 Roles & Features Matrix
+
+| Feature | HR | Supervisor | Operator | GM | Planner |
+|---------|----|----|----|----|---------|
+| Employee Management | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Role Assignment | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Attendance | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Work Assignment | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Job Tracking | ❌ | ✅ | ✅ | ❌ | ❌ |
+| Efficiency Report | ❌ | ✅ | ❌ | ❌ | ❌ |
+| WIP & Stock | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Process Planning | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+---
+
+## 📞 Contact & Support
 
 **Project Lead:** Prem Sai Bollamoni  
 **Email:** premsai200804@gmail.com  
 **GitHub:** [@PremSaiBollamoni](https://github.com/PremSaiBollamoni)
 
-**Total Commits:** 461
+**Repositories:**
+- 🎨 Frontend: https://github.com/PremSaiBollamoni/PALMS-Frontend
+- 🔧 Backend: https://github.com/PremSaiBollamoni/PALMS-Backend
 
 ---
 
 ## 📄 License
 
-Proprietary - All rights reserved
+Proprietary - All rights reserved © 2026
 
 ---
 
 **Last Updated:** June 19, 2026  
-**Maintained by:** Prem Sai Bollamoni
+**Total Commits:** 1000+  
+**Contributors:** Prem Sai Bollamoni
