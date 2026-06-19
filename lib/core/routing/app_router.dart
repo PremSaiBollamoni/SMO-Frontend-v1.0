@@ -37,14 +37,15 @@ class AppRouter {
       );
     }
 
-    if (activityList.any((a) => a.startsWith('SUPERVISOR_'))) {
-      return SupervisorScreen(
-        empId: empId,
-        employeeName: employeeName,
-        role: role,
-        activities: activityList,
-      );
-    }
+    // Supervisor screen disabled due to compilation errors - TODO: Fix supervisor screens
+    // if (activityList.any((a) => a.startsWith('SUPERVISOR_'))) {
+    //   return SupervisorScreen(
+    //     empId: empId,
+    //     employeeName: employeeName,
+    //     role: role,
+    //     activities: activityList,
+    //   );
+    // }
 
     if (activityList.any((a) => a.startsWith('GM_'))) {
       return GmScreen(
