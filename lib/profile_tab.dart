@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 
 import 'core/theme/app_theme.dart';
-import 'models.dart';
 import 'core/network/api_client.dart';
+import 'features/hr/data/models/hr_profile_models.dart';
 
 /// Reusable profile tab — drop into any workspace.
 /// Uses the same GET/PUT /api/hr/profile/{empId} endpoints as HR.
