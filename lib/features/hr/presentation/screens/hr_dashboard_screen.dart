@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/widgets/dashboard_shell.dart';
 import '../../../../login_screen.dart';
@@ -13,13 +12,24 @@ import '../widgets/employees_view.dart';
 import '../widgets/create_role_dialog.dart';
 import '../widgets/create_employee_dialog.dart';
 import '../../domain/models/employee_profile_model.dart';
-import '../../../../features/analytics/analytics_screen.dart';
+import '../../../../core/theme/app_theme.dart';
+import 'shift_management_screen.dart';
+import 'station_management_screen.dart';
+import 'sam_management_screen.dart';
 
-/// HR Dashboard Screen - Clean Architecture Implementation
 class HrDashboardScreen extends StatefulWidget {
+  final String? empId;
+  final String? employeeName;
+  final List<String>? activities;
   final Function(bool)? setDarkMode;
 
-  const HrDashboardScreen({super.key, this.setDarkMode});
+  const HrDashboardScreen({
+    super.key,
+    this.empId,
+    this.employeeName,
+    this.activities,
+    this.setDarkMode,
+  });
 
   @override
   State<HrDashboardScreen> createState() => _HrDashboardScreenState();
@@ -29,6 +39,7 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
   final HrController _controller = Get.put(HrController());
   String _empId = '';
   String _employeeName = 'HR';
+  List<String> _acts = [];
 
   @override
   void initState() {
@@ -37,61 +48,88 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
   }
 
   Future<void> _loadSessionAndData() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      _employeeName = prefs.getString('EMPLOYEE_NAME') ?? 'HR';
-      _empId = prefs.getString('EMP_ID') ?? '1001';
+    final prefs = await SharedPreferences.getInstance();
+    _employeeName = widget.employeeName ?? prefs.getString('EMPLOYEE_NAME') ?? 'HR';
+    _empId = widget.empId ?? prefs.getString('EMP_ID') ?? '';
 
-      ApiClient().setEmpId(_empId);
-      _controller.initialize(_empId, _employeeName);
-      await _controller.refreshAll();
-      if (mounted) setState(() {});
-    } catch (e) {
-      debugPrint('Session load error: $e');
-    }
+    final stored = prefs.getString('ACTIVITIES') ?? '';
+    _acts = widget.activities ??
+        stored.split(',').map((a) => a.trim().toUpperCase()).where((a) => a.isNotEmpty).toList();
+
+    ApiClient().setEmpId(_empId);
+    _controller.initialize(_empId, _employeeName);
+    await _controller.refreshAll();
+    if (mounted) setState(() {});
   }
+
+  bool _has(String activity) => _acts.contains(activity);
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (_) => LoginScreen(setDarkMode: widget.setDarkMode),
-      ),
+      MaterialPageRoute(builder: (_) => LoginScreen(setDarkMode: widget.setDarkMode)),
       (route) => false,
     );
   }
 
   List<FeatureGroup> _buildGroups() {
-    final management = <FeatureCard>[
-      FeatureCard(
+    final management = <FeatureCard>[];
+
+    if (_has('HR_DASHBOARD')) {
+      management.add(FeatureCard(
         icon: Icons.dashboard_outlined,
         label: 'Dashboard',
         screen: DashboardView(),
         color: AppTheme.primary,
-      ),
-      FeatureCard(
+      ));
+    }
+
+    if (_has('HR_MANAGE_ROLES')) {
+      management.add(FeatureCard(
         icon: Icons.badge_outlined,
-        label: 'Roles',
+        label: 'Role Management',
         screen: const RolesView(),
         color: AppTheme.secondary,
         fab: FloatingActionButton(
-          onPressed: () => _showCreateRoleDialog(),
+          onPressed: _showCreateRoleDialog,
           child: const Icon(Icons.add),
         ),
-      ),
-      FeatureCard(
+      ));
+    }
+
+    if (_has('HR_MANAGE_EMPLOYEES')) {
+      management.add(FeatureCard(
         icon: Icons.people_outlined,
-        label: 'Employees',
+        label: 'Employee Management',
         screen: EmployeesView(onEmployeeTap: _showEmployeeProfile),
         color: AppTheme.tertiary,
         fab: FloatingActionButton(
-          onPressed: () => _showCreateEmployeeDialog(),
+          onPressed: _showCreateEmployeeDialog,
           child: const Icon(Icons.add),
         ),
-      ),
-    ];
+      ));
+    }
+
+    if (_has('HR_ATTENDANCE_REPORT')) {
+      management.add(FeatureCard(
+        icon: Icons.fact_check_outlined,
+        label: 'Attendance Reports',
+        screen: const Center(child: Text('Attendance Reports — Coming Soon')),
+        color: const Color(0xFF7B61FF),
+      ));
+    }
+
+    if (_has('HR_MANAGE_EMPLOYEES')) {
+      management.add(FeatureCard.lazy(
+        icon: Icons.schedule_outlined,
+        label: 'Shifts & Breaks',
+        screenBuilder: () => ShiftManagementScreen(empId: _empId),
+        color: const Color(0xFF00897B),
+        hasOwnScaffold: true,
+      ));
+    }
 
     final account = <FeatureCard>[
       FeatureCard(
@@ -100,16 +138,10 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
         screen: ProfileTab(empId: _empId.trim()),
         color: AppTheme.onSurfaceVariant,
       ),
-      FeatureCard(
-        icon: Icons.analytics_outlined,
-        label: 'Analytics',
-        screen: const AnalyticsScreen(),
-        color: AppTheme.info,
-      ),
     ];
 
     return [
-      FeatureGroup(title: 'Management', cards: management),
+      if (management.isNotEmpty) FeatureGroup(title: 'Management', cards: management),
       FeatureGroup(title: 'Account', cards: account),
     ];
   }
@@ -119,47 +151,7 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
     if (profile == null || !mounted) return;
     await showDialog<void>(
       context: context,
-      builder: (context) => _buildEmployeeProfileDialog(profile),
-    );
-  }
-
-  Widget _buildEmployeeProfileDialog(EmployeeProfileModel profile) {
-    return AlertDialog(
-      title: Text('Profile - ${profile.empName}'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Employee ID: ${profile.empId}'),
-            const SizedBox(height: 6),
-            Text('Name: ${profile.empName}'),
-            const SizedBox(height: 6),
-            Text('Role: ${profile.role.roleName}'),
-            const SizedBox(height: 6),
-            Text('Email: ${profile.email}'),
-            const SizedBox(height: 6),
-            Text('Phone: ${profile.phone.isEmpty ? '-' : profile.phone}'),
-            const SizedBox(height: 6),
-            Text('Address: ${profile.address.isEmpty ? '-' : profile.address}'),
-            const SizedBox(height: 6),
-            Text('DOB: ${profile.dob.isEmpty ? '-' : profile.dob}'),
-            const SizedBox(height: 6),
-            Text('Blood Group: ${profile.bloodGroup.isEmpty ? '-' : profile.bloodGroup}'),
-            const SizedBox(height: 6),
-            Text('Emergency Contact: ${profile.emergencyContact.isEmpty ? '-' : profile.emergencyContact}'),
-            const SizedBox(height: 6),
-            Text('Aadhar: ${profile.aadharNumber.isEmpty ? '-' : profile.aadharNumber}'),
-            const SizedBox(height: 6),
-            Text('PAN: ${profile.panCardNumber.isEmpty ? '-' : profile.panCardNumber}'),
-            const SizedBox(height: 6),
-            Text('Status: ${profile.status}'),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
-      ],
+      builder: (context) => _EmployeeProfileDialog(profile: profile),
     );
   }
 
@@ -193,10 +185,10 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
   Future<void> _showCreateEmployeeDialog() async {
     final roles = _controller.roles.toList();
     if (roles.isEmpty) {
+      if (!mounted) return;
       CustomSnackbar.showError(context, 'Create at least one role first');
       return;
     }
-
     final result = await showDialog<Map<String, dynamic>?>(
       context: context,
       builder: (context) => CreateEmployeeDialog(
@@ -236,11 +228,9 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
         },
       ),
     );
-
     if (!mounted) return;
     if (result != null) {
-      final createdEmpId = result['empId'];
-      CustomSnackbar.showSuccess(context, 'Employee created successfully (ID: $createdEmpId)');
+      CustomSnackbar.showSuccess(context, 'Employee created (ID: ${result['empId']})');
       await _controller.fetchEmployees();
     }
   }
@@ -259,3 +249,48 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
   }
 }
 
+class _EmployeeProfileDialog extends StatelessWidget {
+  final EmployeeProfileModel profile;
+  const _EmployeeProfileDialog({required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Profile — ${profile.empName}'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _row('Employee ID', profile.empId),
+            _row('Name', profile.empName),
+            _row('Role', profile.role.roleName),
+            _row('Email', profile.email),
+            _row('Phone', profile.phone.isEmpty ? '-' : profile.phone),
+            _row('Address', profile.address.isEmpty ? '-' : profile.address),
+            _row('DOB', profile.dob.isEmpty ? '-' : profile.dob),
+            _row('Blood Group', profile.bloodGroup.isEmpty ? '-' : profile.bloodGroup),
+            _row('Emergency', profile.emergencyContact.isEmpty ? '-' : profile.emergencyContact),
+            _row('Aadhar', profile.aadharNumber.isEmpty ? '-' : profile.aadharNumber),
+            _row('PAN', profile.panCardNumber.isEmpty ? '-' : profile.panCardNumber),
+            _row('Status', profile.status),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
+      ],
+    );
+  }
+
+  Widget _row(String label, String value) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(width: 100, child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.w600))),
+            Expanded(child: Text(value)),
+          ],
+        ),
+      );
+}
