@@ -19,7 +19,10 @@
       "Bash(cd /c/Users/HP/SMOBZAV2/backend && find . -name \"*.java\" -path \"*/models/*\" | head -20)",
       "Read(//c/c/Users/HP/SMOBZAV2/**)",
       "Bash(xargs grep -l \"logout\\\\|clearAllTokens\\\\|SharedPreferences\")",
-      "Bash(grep -v \"comment\\\\|//\\\\|/**\")"
+      "Bash(grep -v \"comment\\\\|//\\\\|/**\")",
+      "Bash(mysql -u root)",
+      "PowerShell(mysql -u root -e $sql)",
+      "Bash(git restore *)"
     ]
   }
 }

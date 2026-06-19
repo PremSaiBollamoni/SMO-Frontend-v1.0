@@ -12,6 +12,7 @@ class ActiveJob {
   final double estMinutes;
   final int elapsedSeconds;
   final String status;
+  final DateTime? endTime;
 
   const ActiveJob({
     required this.jobId,
@@ -27,6 +28,7 @@ class ActiveJob {
     required this.estMinutes,
     required this.elapsedSeconds,
     required this.status,
+    this.endTime,
   });
 
   factory ActiveJob.fromJson(Map<String, dynamic> j) => ActiveJob(
@@ -43,6 +45,7 @@ class ActiveJob {
     estMinutes: (j['estMinutes'] ?? 0).toDouble(),
     elapsedSeconds: j['elapsedSeconds'] ?? 0,
     status: j['status'] ?? '',
+    endTime: j['endTime'] != null ? DateTime.parse(j['endTime']) : null,
   );
 }
 

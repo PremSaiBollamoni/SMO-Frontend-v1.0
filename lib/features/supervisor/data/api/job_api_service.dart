@@ -30,4 +30,9 @@ class JobApiService {
     final res = await _dio.get('/api/jobs/station/$wsId/active');
     return (res.data as List).map((j) => ActiveJob.fromJson(j)).toList();
   }
+
+  Future<List<ActiveJob>> getAllJobs() async {
+    final res = await _dio.get('/api/jobs');
+    return (res.data as List).map((j) => ActiveJob.fromJson(j)).toList();
+  }
 }
