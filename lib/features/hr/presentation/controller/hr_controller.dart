@@ -454,17 +454,6 @@ class HrController extends GetxController {
     }
   }
 
-  /// Generate Excel file from employee data
-  Future<void> _generateExcelFile(List<Map<String, dynamic>> data) async {
-    try {
-      // This will be implemented in the UI layer using excel package
-      debugPrint('Preparing ${data.length} employees for export');
-    } catch (e) {
-      debugPrint('Error generating Excel: $e');
-      rethrow;
-    }
-  }
-
   /// Delete multiple roles
   Future<bool> deleteRoles(List<int> roleIds) async {
     try {
