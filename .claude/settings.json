@@ -15,7 +15,9 @@
       "Bash(xargs grep -l \"getCause\\\\|printStackTrace\\\\|System.out\\\\|System.err\")",
       "Bash(grep -i \"\\\\.java$\")",
       "Bash(cat)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(cd /c/Users/HP/SMOBZAV2/backend && find . -name \"*.java\" -path \"*/models/*\" | head -20)",
+      "Read(//c/c/Users/HP/SMOBZAV2/**)"
     ]
   }
 }
