@@ -1,769 +1,296 @@
-# 🎨 SMO - Smart Manufacturing Operations (Frontend)
+# 🏭 PALMS - Parallel Assembly Line Management System (Frontend)
 
 <div align="center">
 
-![Flutter](https://img.shields.io/badge/Flutter-3.0+-02569B?style=for-the-badge&logo=flutter&logoColor=white)
+![Flutter](https://img.shields.io/badge/Flutter-3.8.1-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?style=for-the-badge&logo=dart&logoColor=white)
-![GetX](https://img.shields.io/badge/GetX-State%20Management-8B5CF6?style=for-the-badge&logo=flutter&logoColor=white)
-![Material Design](https://img.shields.io/badge/Material%20Design-3-757575?style=for-the-badge&logo=material-design&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)
+![GetX](https://img.shields.io/badge/GetX-State%20Management-8B5CF6?style=for-the-badge)
+![Material Design 3](https://img.shields.io/badge/Material%20Design-3-757575?style=for-the-badge)
+![Commits](https://img.shields.io/badge/Commits-461-blue?style=for-the-badge)
 
-**Beautiful, responsive cross-platform application for intelligent manufacturing operations**
+**Intelligent garment factory management system with real-time production tracking and role-based workflows**
 
-[Features](#-features) • [Screenshots](#-screenshots) • [Architecture](#-architecture) • [Getting Started](#-getting-started) • [Build](#-build) • [Download](#-download-apk)
+[Features](#-completed-features) • [Coming Soon](#-coming-soon) • [Architecture](#-architecture) • [Setup](#-getting-started)
 
----
-
-## 📱 Download APK
-
-**Latest Release: v1.0.0 (May 6, 2026)**
-
-[![Download APK](https://img.shields.io/badge/Download-SMO--V1.apk-success?style=for-the-badge&logo=android)](https://github.com/PremSaiBollamoni/SMO-Frontend-V2/raw/main/SMO-V1.apk)
-
-**Direct Download Link:**
-```
-https://github.com/PremSaiBollamoni/SMO-Frontend-V2/raw/main/SMO-V1.apk
-```
-
-**File Size:** 71.52 MB  
-**App Name:** SMO-V1  
-**Min Android:** 5.0 (API 21+)
-
-**Installation:**
-1. Download the APK using the link above
-2. Enable "Install from unknown sources" in Android settings
-3. Install the APK
-4. Launch "SMO-V1" app
-
-**[View Release Notes](RELEASE_NOTES_v1.0.0.md)**
-
-</div>
+**Total Commits:** 461  
+**Project Lead:** Prem Sai Bollamoni  
+**Tracking Email:** premsai200804@gmail.com
 
 ---
 
-## 📋 Overview
+## ✅ Completed Features
 
-SMO Frontend is a modern, feature-rich Flutter application that provides an intuitive interface for managing garment manufacturing operations. Built with clean architecture principles and powered by GetX state management, it delivers a seamless experience across Windows, Android, iOS, and Web platforms.
+### 🔐 Authentication & Authorization
+- [x] Employee login with temporary QR codes (EMP-TEMP-XXX format)
+- [x] Role-based access control (RBAC) with 5 roles: Supervisor, Operator, HR, GM, Process Planner
+- [x] Session management with SharedPreferences
+- [x] Auto-logout and session recovery
 
-### 🎯 Key Highlights
+### 👨‍💼 HR & Admin Dashboard
+- [x] Employee management (CRUD operations)
+- [x] Role management with activity-based permissions
+- [x] Attendance tracking with check-in/out via QR codes
+- [x] Employee attendance reports
+- [x] Shift & breaks management
+- [x] Profile management for all users
+- [x] Free all QRs button (end-of-shift functionality with auto-checkout)
+- [x] Attendance tabs: All | Active | History
 
-- **🎨 Modern UI/UX** - Material Design 3 with custom theming and smooth animations
-- **📱 Cross-Platform** - Single codebase for Windows, Android, iOS, and Web
-- **🔄 Real-time Updates** - Live workflow visualization and production tracking
-- **📊 Interactive Graphs** - DAG-based workflow visualization with zoom and pan
-- **🎭 Role-based Dashboards** - Customized interfaces for each user role
-- **⚡ High Performance** - Optimized rendering and efficient state management
-- **🌐 Offline Support** - Local caching for uninterrupted operations
+### 🏭 Supervisor Module
+- [x] Work assignment - QR-based tray assignment to operators
+  - Employee QR scan (EMP-TEMP-XXX)
+  - Tray QR scan (TRAY-XXX) with quantity input
+  - Auto-tray creation on first scan
+- [x] Station management
+  - Create/edit stations with operation assignment
+  - Machine code linking (optional)
+  - Station code editing
+- [x] Operations & SAM management
+  - Create operations with full details (code, name, stage, SAM, target pcs, skill grade)
+  - Edit all operation fields
+  - Delete operations (long-press)
+  - Dynamic stage creation (no fixed list)
+  - Search and filter by stage
+  - Excel import with smart headers (detects headers anywhere in sheet)
+- [x] Active job monitoring
+  - Live elapsed time tracking (Stream.periodic)
+  - Job completion with tray status management
+  - Job status: ON TRACK, OVERDUE, COMPLETED
+  - SAM vs actual performance metrics
+- [x] Assignment History
+  - View all completed jobs
+  - Filter by Today/All
+  - Efficiency % display (SAM vs actual time)
+  - Color-coded performance (green=on-time, orange=over)
+- [x] Efficiency Report
+  - Overall line efficiency %
+  - Per-employee efficiency breakdown
+  - Target efficiency: 95%
+- [x] Attendance tracking
+- [x] Line balancing placeholder
 
----
+### 🎯 Operations Management
+- [x] SAM (Standard Allowed Minutes) management per operation
+- [x] Tray-based job assignment (replacing bundle system)
+- [x] Multi-stage operations support (27 Sub Assembly + 7 Full Garment = 34 total)
+- [x] Sequential operation support
+- [x] Skill grade assignment (A+-grade, A-grade, B-grade, C-grade, Helper)
+- [x] Target pieces per shift configuration
+- [x] Auto operation code generation from operation name
 
-## ✨ Features
+### 📊 Data Management
+- [x] Excel import for operations with smart header detection
+  - Supports flexible header row placement
+  - Auto-creates stations linked to operations
+  - Batch operation creation/update
+  - Conflict resolution (operation exists = update, new = create)
+- [x] Tray lifecycle management (FREE → ASSIGNED → FREE)
+- [x] Job assignment with tray quantity tracking
+- [x] Real-time job status updates
 
-### 🏗️ Core Modules
+### 🎨 UI/UX
+- [x] Clean Material Design 3 interface
+- [x] Responsive layouts for different screen sizes
+- [x] Color-coded status indicators
+- [x] Tab-based navigation
+- [x] Smooth animations and transitions
+- [x] Search and filter functionality
+- [x] Error handling with user-friendly messages
+- [x] Loading states and progress indicators
 
-#### 1. **HR & Admin Dashboard**
-- 👥 Employee management with CRUD operations
-- 🎭 Role creation and assignment
-- 📊 HR analytics and insights
-- 🔐 Login credential management
-- 📈 Employee performance tracking
-- 🎨 Clean, intuitive interface with sidebar navigation
-
-#### 2. **General Manager (GM) Module**
-- ✅ Process plan approval workflow
-- 📊 Pending approvals dashboard
-- 🔍 Detailed process plan review
-- 📈 Production insights and metrics
-- 🎯 Strategic decision support
-- 📉 Performance analytics
-
-#### 3. **Process Planner Module**
-- 🎨 Visual workflow designer
-- 📋 Operation management (Create, Edit, Delete)
-- 🔄 Routing and routing step configuration
-- 📦 Product management
-- 🎯 Process plan creation and cloning
-- 📊 Interactive workflow graph visualization
-  - Horizontal left-to-right layout
-  - Parallel branch and merge point rendering
-  - Node metrics and operation details
-  - Zoom and pan capabilities
-  - Color-coded operation types
-
-#### 4. **Supervisor Module**
-- 🏷️ QR code assignment to operators
-- 📍 Work tracking and monitoring
-- 🔄 Bin merging operations
-- 👷 Operator performance insights
-- 🔄 Work reassignment capabilities
-- 📊 Floor-level analytics
-- ⚡ Real-time status updates
-
-#### 5. **Operator Module**
-- 📋 Assigned tasks view
-- ▶️ Start work interface
-- ✅ Complete work tracking
-- 📊 Personal performance metrics
-- 🏷️ QR code scanning
-- ⏱️ Time tracking
-
-#### 6. **Store Management Module**
-- 📦 Inventory management
-- 📥 GRN (Goods Receipt Note) processing
-- 📊 Stock level monitoring
-- 🔄 Stock movement tracking
-- 📋 Item management
-- 🎯 Material issue tracking
-
-#### 7. **Auto-Discovery & Service Configuration**
-- 🔍 Automatic backend service discovery
-- 🌐 mDNS/Bonjour support
-- 📡 Network scanning fallback
-- 🔄 Intelligent retry mechanism
-- 💾 URL caching for offline access
-- 🎯 Multi-network support (192.168.x.x, 10.x.x.x, 172.x.x.x)
-- ⚡ Zero-configuration deployment
-- 🔐 Secure service validation
-
-#### 8. **Interactive Workflow Monitoring**
-- 🖱️ Clickable workflow nodes for real-time insights
-- 👥 Role-based access (GM strategic, Supervisor operational)
-- 📊 Live production metrics (WIP, active jobs, completions)
-- 🔄 Auto-refreshing node metrics dialog
-- 📈 Strategic monitoring for bottleneck analysis
-- 🏭 Floor-level monitoring for production tracking
-
-#### 9. **Order Management System** ⭐ NEW
-- 📋 Create and manage production orders
-- 🎯 Link orders to products and process plans
-- 📊 Real-time order progress tracking
-- 🔗 Bin-to-order linkage for WIP tracking
-- 📈 Strategic Monitor for GM oversight
-- ✅ Order activation and status management
-- 🏷️ Supervisor assigns bins to orders during QR assignment
-- 📊 Progress calculation from linked bins and WIP data
-
-#### 10. **Enhanced Workflow Progression** ⭐ NEW
-- 🔄 Automatic routing progression through operations
-- 📍 Current operation tracking in bin table
-- ✅ Sequential operation validation
-- 🎯 Last operation detection for workflow completion
-- 📊 Bin status lifecycle management
-- 🔗 WIP tracking with proper FK population
-- ♻️ Bin reusability after merge (FREE status)
-
-#### 11. **QR Event Audit Trail** ⭐ NEW
-- 📝 Complete QR scanning event logging
-- 🔍 Audit trail for compliance and debugging
-- 📊 Event types: ASSIGNMENT, TRACKING, MERGE_SOURCE, MERGE_TARGET
-- 🕒 Timestamp tracking for all QR operations
-- 👤 Operator and supervisor tracking
-- 📈 Historical event analysis capabilities
-
-#### 12. **Toast Notifications** ⭐ NEW
-- 📱 Mobile-friendly toast messages using fluttertoast
-- ✅ Success notifications (green background)
-- ℹ️ Info notifications (blue background)
-- ❌ Error notifications (red background)
-- ⏱️ 4-5 second display duration
-- 📍 Center gravity for better visibility
-- 🖥️ Desktop-compatible using ScaffoldMessenger snackbars
-
-#### 13. **Master Data Management System** ⭐ NEW
-- 🎨 Centralized master data management interface
-- 📋 Compact list view with card-based UI
-- **Styles** - Manage garment styles with concept, labels, patterns
-- **GTG (Garment-to-Go)** - Style variants with size, color, sleeve type
-- **Buttons** - Button catalog with codes and names
-- **Labels** - Label inventory (woven, printed, care labels)
-- **Machines** - Machine registry with types and status
-- **Threads** - Thread catalog with color codes
-- ✅ Full CRUD operations for all entities
-- 🔄 Active/Inactive status management
-- 📊 Dropdown population for dependent entities
-- 🎯 Real-time validation and error handling
-- 💾 Automatic data refresh after operations
-
-#### 14. **Edit Routing — Visual Process Plan Editor** ⭐ NEW
-A new sidebar entry under Process Planner that lets the planner modify any
-existing routing visually using the same graph renderer as the rest of the app.
-Tap any node to open a bottom-sheet menu with seven actions, each with a live
-preview before committing.
-
-Actions:
-- ✏️ **Add a step BEFORE this one** — insert into the path leading into the tapped step
-- ➕ **Add a step AFTER this one** — insert into the path leading out, with a branch picker when there are multiple downstream paths, plus a "Run alongside (parallel)" mode that adds a new branch instead of splitting an existing one
-- 🔗 **Connect to another step** — draw a fresh arrow from this step to any other step in the routing
-- 🔄 **Change what comes next** — pick one of this step's outgoing arrows and redirect it to a different step
-- ➡️ **Move this step** — pick it up and re-place it: insert into a path, run as a parallel branch, or detach as a terminal node, with auto-bridging of old neighbors
-- 📝 **Edit name & description** — rename in this routing only (auto-clones the operation if shared with other routings)
-- 🗑️ **Remove this step from the routing** — auto-bridges predecessors → successors so the flow stays continuous
-
-Plain-English UX:
-- No technical jargon (no "anchor", no "edge")
-- Step kind dropdown shows "Normal", "Side-path", "Joining" instead of SEQUENTIAL/PARALLEL_BRANCH/MERGE
-- Each dialog shows the current state and a live mini-graph preview of the result before submission
-
-Graph rendering improvements (each behind a feature flag for instant revert):
-- 🎨 **Orthogonal (StarUML-style) routing** — right-angle edges only, no diagonals
-- 📍 **Per-source channels** — sibling source nodes get their own vertical channel so their lines never overlap
-- 🌳 **Tree-style fan-out** — multiple outgoing edges share a single source point and split at the channel
-- 🎯 **Fan-in lanes at target** — multiple incoming arrows arrive with vertical spacing so arrowheads don't stack
-- 🚧 **Obstacle dodge** — vertical channels shift past blocking nodes; horizontal runs lift above/below blockers
-- ➡️ **Same-Y straight shortcut** — perfectly aligned source/target draw as a single straight line
-- 📐 **Crossing minimization** — barycenter pass reorders plain (non-semantic) levels to reduce edge crossings
-- 🎯 **Solo-child Y alignment** — single-node levels with one parent align to the parent's Y for clean horizontal arrows
-- 🎯 **Per-node parent alignment** — multi-node levels gravitate each node toward its parent's Y while preserving spacing
-
-#### 15. **Tracking Duration Display** ⭐ NEW
-- ⏱️ Shows time between assign scan and complete scan
-- 📊 Both raw seconds and human-readable format (e.g. "1h 23m 45s")
-- 🕒 Start and end timestamps in the success popup
-- 🎯 Helps supervisors monitor operator productivity in real time
+### 🔄 Database Integration
+- [x] RESTful API client with Dio
+- [x] Automatic QR mapping resolution
+- [x] Attendance record management
+- [x] Job assignment persistence
+- [x] Tray status tracking
 
 ---
 
-## 🖼️ Screenshots
+## 🚀 Coming Soon
 
-### Dashboard Views
-```
-┌─────────────────────────────────────────────────────────────┐
-│  HR Dashboard    │  GM Dashboard    │  Process Planner      │
-│  ┌─────────────┐ │  ┌─────────────┐ │  ┌─────────────┐     │
-│  │ Employees   │ │  │ Pending     │ │  │ Workflow    │     │
-│  │ Roles       │ │  │ Approvals   │ │  │ Graph       │     │
-│  │ Analytics   │ │  │ Insights    │ │  │ Operations  │     │
-│  └─────────────┘ │  └─────────────┘ │  └─────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-```
+### 📱 Operator Module
+- [ ] Personal job dashboard
+- [ ] Efficiency tracking
+- [ ] Performance metrics
+- [ ] Work history
 
-### Workflow Graph Visualization
-```
-CUTTING → PART_BIN_CREATION → ┬─ COLLAR_CUFF_LINE ──→ MERGE_COLLAR ─┐
-                               ├─ POCKET_PLACKET_LINE → MERGE_POCKET ─┤
-                               ├─ SLEEVE_LINE ────────→ MERGE_SLEEVE ─┤
-                               └─ BODY_LINE ──────────→ MERGE_BODY ───┘
-                                                                       ↓
-                                                                  SIDE_SEAM
-                                                                       ↓
-                                                              BUTTON_HOLE → ...
-```
+### 📈 Advanced Analytics
+- [ ] Daily stock position board
+- [ ] Bottleneck detection
+- [ ] Pacemaker registry
+- [ ] Production loss & shift risk scoring
+- [ ] 12 standard PALMS reports
+
+### 🏪 Stock Management (GM Module)
+- [ ] WIP (Work In Progress) tracking
+- [ ] Stock position management
+- [ ] Inventory reports
+- [ ] Material allocation
+
+### ✅ Quality Control
+- [ ] QC inspector role
+- [ ] Defect logging
+- [ ] Quality reports
+- [ ] Rework tracking
+
+### 🎛️ Advanced Features
+- [ ] Shift-wise efficiency tracking
+- [ ] Concurrent operation support
+- [ ] Dynamic line balancing suggestions
+- [ ] Predictive analytics
+- [ ] Mobile notifications
 
 ---
 
-## 🏛️ Architecture
-
-### Clean Architecture Layers
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Presentation Layer                        │
-│  Screens • Widgets • Controllers (GetX) • UI Components      │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                      Domain Layer                            │
-│  Models • Business Logic • Use Cases • Entities              │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                       Data Layer                             │
-│  Repositories • API Services • Data Sources • DTOs           │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                     External Services                        │
-│  REST API • Local Storage • Device Features                  │
-└─────────────────────────────────────────────────────────────┘
-```
+## 🏗️ Architecture
 
 ### State Management
+- **GetX** for reactive state management
+- GetxController for business logic
+- Efficient rebuild optimization
 
-**GetX Pattern:**
-- **Controllers** - Business logic and state management
-- **Reactive Variables** - `.obs` for reactive state
-- **Dependency Injection** - `Get.put()` and `Get.find()`
-- **Navigation** - `Get.to()` and `Get.back()`
-- **Snackbars** - `Get.snackbar()` for user feedback
+### Clean Architecture
+```
+lib/
+├── features/
+│   ├── auth/
+│   ├── attendance/
+│   ├── hr/
+│   ├── supervisor/
+│   ├── gm/
+│   └── ...
+├── core/
+│   ├── network/
+│   ├── theme/
+│   ├── utils/
+│   └── widgets/
+└── main.dart
+```
 
-### Key Design Patterns
-
-- **Repository Pattern** - Abstract data sources
-- **MVVM Pattern** - Model-View-ViewModel architecture
-- **Factory Pattern** - Widget and model creation
-- **Singleton Pattern** - API clients and services
-- **Observer Pattern** - Reactive state updates
+### Data Flow
+- UI Layer (Screens) → Controllers (GetX) → Services (API/Local) → Network Layer (Dio)
 
 ---
 
-## 🚀 Getting Started
+## 📱 Getting Started
 
 ### Prerequisites
-
-```bash
-Flutter SDK 3.0+
-Dart SDK 3.0+
-Android Studio / VS Code
-```
+- Flutter 3.8.1 or higher
+- Dart 3.0 or higher
+- Android SDK (API 21+) or iOS SDK
+- VS Code or Android Studio
 
 ### Installation
 
-1. **Clone the repository**
+1. **Clone the repository:**
 ```bash
-git clone https://github.com/PremSaiBollamoni/SMO-Frontend-V2.git
-cd SMO-Frontend-V2
+git clone https://github.com/PremSaiBollamoni/PALMS-Frontend.git
+cd PALMS-Frontend
 ```
 
-2. **Install dependencies**
+2. **Install dependencies:**
 ```bash
 flutter pub get
 ```
 
-3. **Configure API endpoint**
+3. **Configure backend URL:**
+Edit `lib/core/network/api_client.dart` and set your backend URL:
 ```dart
-// lib/core/config/app_config.dart
-// API endpoint is now automatically discovered!
-// The app will:
-// 1. Try cached URL first
-// 2. Try localhost (http://localhost:8080)
-// 3. Try current machine IP
-// 4. Try mDNS discovery
-// 5. Fall back to network scanning
-
-// For manual override (testing only):
-final discoveryService = Get.find<ServiceDiscoveryService>();
-await discoveryService.setManualBackendUrl('http://192.168.1.100:8080');
+static const String baseUrl = 'http://your-backend-url:8080';
 ```
 
-4. **Run the application**
+4. **Run the application:**
 ```bash
-# For Windows
-flutter run -d windows
-
-# For Android
-flutter run -d android
-
-# For Web
-flutter run -d chrome
-
-# For iOS
-flutter run -d ios
+flutter run -d <device>
 ```
 
----
-
-## 🔧 Configuration
-
-### Service Discovery
-
-The app automatically discovers the SMO backend service on your local network. No manual configuration needed!
-
-**Production Configuration:**
-- **Backend URL:** `https://smobza.thegttech.com/smo`
-- **Context Path:** `/smo` (important for Tomcat deployment)
-- **Automatic Discovery:** Enabled with production URL as primary
-
-**Discovery Process:**
-1. **Production Server** - Tries `https://smobza.thegttech.com/smo` first
-2. **Cached URL** - Checks previously discovered backend
-3. **Localhost** - Tries `http://localhost:8080` (development)
-4. **Current Machine IP** - Scans local network interfaces
-5. **mDNS Discovery** - Uses Bonjour/mDNS for service discovery
-6. **Network Scanning** - Scans local network ranges as fallback
-
-**Supported Networks:**
-- `192.168.x.x` (Class C private)
-- `10.x.x.x` (Class A private)
-- `172.x.x.x` (Class B private)
-- Any other local network
-
-**Production Deployment:**
-```dart
-// lib/core/config/app_config.dart
-const String fallbackBaseUrl = 'https://smobza.thegttech.com/smo';
-
-// lib/core/services/service_discovery.dart
-// Production server is checked first in discoverBackend()
-if (await _validateBackend('https://smobza.thegttech.com/smo')) {
-  await _cacheUrl('https://smobza.thegttech.com/smo');
-  return 'https://smobza.thegttech.com/smo';
-}
-```
-
-**Manual Override (Testing):**
-```dart
-final discoveryService = Get.find<ServiceDiscoveryService>();
-await discoveryService.setManualBackendUrl('http://192.168.1.100:8080');
-```
-
-**Force Refresh Discovery:**
-```dart
-final discoveryService = Get.find<ServiceDiscoveryService>();
-final backendUrl = await discoveryService.refreshDiscovery();
-```
-
-### API Configuration
-
-```dart
-// lib/core/config/app_config.dart
-class AppConfig {
-  static const String baseUrl = 'http://localhost:8080/api';
-  static const Duration timeout = Duration(seconds: 30);
-  static const bool enableLogging = true;
-}
-```
-
-### Theme Configuration
-
-```dart
-// lib/core/theme/app_theme.dart
-class AppTheme {
-  static ThemeData lightTheme = ThemeData(
-    primaryColor: Color(0xFF2196F3),
-    colorScheme: ColorScheme.light(
-      primary: Color(0xFF2196F3),
-      secondary: Color(0xFF03A9F4),
-    ),
-    // ... custom theme configuration
-  );
-}
-```
-
----
-
-## 📦 Dependencies
-
-### Core Dependencies
-
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  
-  # State Management
-  get: ^4.6.5
-  
-  # HTTP Client
-  dio: ^5.3.2
-  
-  # Local Storage
-  shared_preferences: ^2.2.0
-  
-  # Service Discovery
-  multicast_dns: ^0.3.2+7
-  
-  # UI Components
-  flutter_svg: ^2.0.7
-  cached_network_image: ^3.2.3
-  
-  # QR Code
-  qr_flutter: ^4.1.0
-  mobile_scanner: ^3.4.1
-  
-  # Charts & Graphs
-  fl_chart: ^0.63.0
-  graphview: ^1.2.0
-  syncfusion_flutter_charts: ^30.2.7
-  
-  # Utilities
-  intl: ^0.18.1
-  logger: ^2.0.1
-```
-
----
-
-## 🏗️ Project Structure
-
-```
-lib/
-├── core/                          # Core functionality
-│   ├── config/                    # App configuration
-│   │   └── app_config.dart
-│   ├── network/                   # Network setup
-│   │   └── dio_setup.dart
-│   ├── theme/                     # App theming
-│   │   └── app_theme.dart
-│   └── utils/                     # Utility functions
-│
-├── features/                      # Feature modules
-│   ├── hr/                        # HR Module
-│   │   ├── data/
-│   │   │   ├── api/              # API services
-│   │   │   ├── models/           # Data models
-│   │   │   └── repository/       # Repositories
-│   │   ├── domain/
-│   │   │   └── models/           # Domain models
-│   │   └── presentation/
-│   │       ├── controller/       # GetX controllers
-│   │       ├── screens/          # Screen widgets
-│   │       └── widgets/          # Reusable widgets
-│   │
-│   ├── gm/                        # GM Module
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   │
-│   ├── process_planner/           # Process Planner Module
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   │       └── widgets/
-│   │           └── workflow_graph/  # Graph visualization
-│   │               ├── workflow_graph_builder.dart
-│   │               ├── horizontal_workflow_graph.dart
-│   │               ├── workflow_node.dart
-│   │               └── engines/
-│   │
-│   ├── supervisor/                # Supervisor Module
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   │
-│   ├── operator/                  # Operator Module
-│   │   ├── data/
-│   │   ├── domain/
-│   │   └── presentation/
-│   │
-│   └── store/                     # Store Module
-│       ├── data/
-│       ├── domain/
-│       └── presentation/
-│
-├── login_screen.dart              # Login screen
-├── main.dart                      # App entry point
-└── models.dart                    # Shared models
-```
-
----
-
-## 🎨 UI Components
-
-### Custom Widgets
-
-- **WorkflowGraphBuilder** - Interactive DAG visualization
-- **HorizontalWorkflowGraph** - Left-to-right workflow renderer
-- **WorkflowNode** - Customizable operation node with click support
-- **NodeMetricsDialog** - Real-time production metrics popup
-- **TrayQuantityStepper** - Quantity input with validation
-- **DashboardCard** - Reusable metric card
-- **CustomSidebar** - Role-based navigation
-- **CustomTopBar** - Consistent app bar
-
-### Interactive Features
-
-- **Clickable Workflow Nodes** - Tap nodes for real-time metrics
-- **Role-based Access** - GM strategic view, Supervisor operational view
-- **Auto-refresh Metrics** - Live data updates every 30 seconds
-- **Zoom & Pan Support** - Interactive graph navigation
-- **Tooltip Support** - Operation descriptions on hover
-
-### Color Palette
-
-```dart
-Primary:     #2196F3  // Blue
-Secondary:   #03A9F4  // Light Blue
-Success:     #4CAF50  // Green
-Warning:     #FF9800  // Orange
-Error:       #F44336  // Red
-Background:  #FAFAFA  // Light Gray
-Surface:     #FFFFFF  // White
-```
-
----
-
-## 🔨 Build & Release
-
-### Production Build (Android APK)
-
+### Build APK
 ```bash
-# Build release APK
 flutter build apk --release
-
-# APK location:
-# build/app/outputs/flutter-apk/app-release.apk
-
-# Install on device
-adb install build/app/outputs/flutter-apk/app-release.apk
-```
-
-### Production Build (Windows)
-
-```bash
-# Build Windows executable
-flutter build windows --release
-
-# Executable location:
-# build/windows/x64/runner/Release/
-
-# Create installer (optional)
-# Use Inno Setup or NSIS to create installer
-```
-
-### Build for Production
-
-```bash
-# Android APK
-flutter build apk --release
-
-# Android App Bundle (for Play Store)
-flutter build appbundle --release
-
-# iOS
-flutter build ios --release
-
-# Windows
-flutter build windows --release
-
-# Web
-flutter build web --release
-```
-
-### Production Deployment Checklist
-
-- [x] Update base URL to production server
-- [x] Update service discovery to check production first
-- [x] Test all endpoints with production backend
-- [x] Verify Strategic Monitor shows order-specific stats
-- [x] Test QR assignment, tracking, and merging workflows
-- [x] Verify master data management CRUD operations
-- [ ] Build and test release APK
-- [ ] Deploy to app store (if applicable)
-- [ ] Create user documentation
-- [ ] Train end users
-
-**Production Status:** ✅ **LIVE** (Deployed May 6, 2026)
-
-### Build Configurations
-
-```bash
-# Development
-flutter run --debug
-
-# Profile (Performance testing)
-flutter run --profile
-
-# Release
-flutter run --release
 ```
 
 ---
 
-## 🧪 Testing
+## 🗄️ Database Schema
 
-```bash
-# Run all tests
-flutter test
+### Key Tables
+- `employee` - Employee information & credentials
+- `role` - User roles with comma-separated activities
+- `attendance` - Daily check-in/out records
+- `operation` - Manufacturing operations (SAM, skill grade, targets)
+- `workstation` - Physical stations linked to operations
+- `job_assignment` - Active job assignments with tray tracking
+- `tray` - Reusable tray management (FREE/ASSIGNED status)
+- `temp_qr_mapping` - Dynamic QR-to-employee mapping for the day
 
-# Run with coverage
-flutter test --coverage
+---
 
-# Run specific test file
-flutter test test/features/hr/hr_controller_test.dart
+## 🔑 Key Concepts
 
-# Integration tests
-flutter test integration_test/
+### QR-Based Workflow
+1. **Employee Check-in:** Scan EMP-TEMP-XXX QR to verify daily presence
+2. **Job Assignment:** Scan TRAY-XXX QR + enter quantity → job created
+3. **Job Completion:** Scan same TRAY-XXX → job completed, tray freed
+4. **End of Shift:** "Free All QRs" auto-checks out active employees
+
+### Tray Lifecycle
+- **FREE** → Available for assignment
+- **ASSIGNED** → Currently assigned to employee
+- **FREE** → Released after job completion (reusable)
+
+### SAM (Standard Allowed Minutes)
+- Time standard per operation (e.g., 0.5 min/piece)
+- Used to calculate expected job duration
+- Compared against actual elapsed time for efficiency %
+
+### Efficiency Calculation
+```
+Efficiency = (Expected Time / Actual Time) × 100
+Target: 95% or higher
 ```
 
-## 🔍 Troubleshooting
+---
 
-### Service Discovery Issues
+## 🛠️ Development
 
-**Problem:** App can't find backend service
-- **Solution 1:** Ensure backend is running on the same network
-- **Solution 2:** Check firewall settings (port 8080 must be accessible)
-- **Solution 3:** Verify both devices are on the same WiFi network
-- **Solution 4:** Manually set backend URL for testing
+### Code Style
+- Follow Dart conventions (camelCase for variables, PascalCase for classes)
+- Max 200 lines per file (single responsibility)
+- One screen = one activity constant in DB
+- Import organization: dart → flutter → packages → local
 
-**Problem:** "Cannot connect to server" error
-- **Solution 1:** Check backend health: `http://backend-ip:8080/api/health`
-- **Solution 2:** Verify network connectivity
-- **Solution 3:** Check if backend is running on port 8080
-- **Solution 4:** Try manual URL configuration
+### Git Workflow
+```bash
+# Create feature branch
+git checkout -b feature/feature-name
 
-**Problem:** Discovery takes too long
-- **Solution 1:** Cached URL will be used on next launch
-- **Solution 2:** Reduce network scan timeout in `service_discovery.dart`
-- **Solution 3:** Use manual URL configuration for faster startup
+# Commit changes
+git commit -m "feat: description"
+
+# Push to remote
+git push origin feature/feature-name
+
+# Create pull request via GitHub
+```
 
 ---
 
-## 📱 Platform Support
+## 📞 Support & Contact
 
-| Platform | Status | Notes |
-|----------|--------|-------|
-| 🪟 Windows | ✅ Supported | Primary development platform |
-| 🤖 Android | ✅ Supported | Android 5.0+ (API 21+) |
-| 🍎 iOS | ✅ Supported | iOS 11.0+ |
-| 🌐 Web | ✅ Supported | Modern browsers |
-| 🐧 Linux | 🚧 Experimental | Community support |
-| 🍎 macOS | 🚧 Experimental | Community support |
+**Project Lead:** Prem Sai Bollamoni  
+**Email:** premsai200804@gmail.com  
+**GitHub:** [@PremSaiBollamoni](https://github.com/PremSaiBollamoni)
 
----
-
-## 🎯 Performance Optimization
-
-- **Lazy Loading** - Load data on demand
-- **Image Caching** - Cached network images
-- **List Virtualization** - Efficient list rendering
-- **State Management** - Minimal rebuilds with GetX
-- **Code Splitting** - Feature-based modules
-- **Asset Optimization** - Compressed images and fonts
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Code Style Guidelines
-
-- Follow [Effective Dart](https://dart.dev/guides/language/effective-dart) guidelines
-- Use meaningful variable and function names
-- Add comments for complex logic
-- Write widget tests for new features
-- Keep widgets focused and reusable
+**Total Commits:** 461
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Proprietary - All rights reserved
 
 ---
 
-## 👥 Authors
-
-**Prem Sai Bollamoni**
-- GitHub: [@PremSaiBollamoni](https://github.com/PremSaiBollamoni)
-- LinkedIn: [Prem Sai Bollamoni](https://linkedin.com/in/premsaibollamoni)
-
----
-
-## 🙏 Acknowledgments
-
-- Flutter team for the amazing framework
-- GetX community for excellent state management
-- Material Design team for design guidelines
-- Open-source contributors for inspiration
-
----
-
-## 📞 Support
-
-For support, email premsaibollamoni@gmail.com or open an issue in the repository.
-
----
-
-<div align="center">
-
-**⭐ Star this repository if you find it helpful!**
-
-Made with ❤️ and Flutter for the garment manufacturing industry
-
-</div>
+**Last Updated:** June 19, 2026  
+**Maintained by:** Prem Sai Bollamoni
