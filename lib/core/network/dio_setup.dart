@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'dart:developer' as dev;
-import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
-import '../security/secure_storage_helper.dart';
 
+/// Centralized Dio setup and configuration
 class DioSetup {
   static Dio createDio() {
     final dio = Dio(
@@ -20,62 +19,66 @@ class DioSetup {
       ),
     );
 
-    // Add Logging Interceptor - Only in debug mode
-    if (kDebugMode) {
-      dio.interceptors.add(
-        PrettyDioLogger(
-          requestHeader: true,
-          requestBody: true,
-          responseBody: false,
-          responseHeader: false,
-          error: true,
-          compact: false,
-          maxWidth: 120,
-          logPrint: (object) => dev.log(object.toString(), name: 'API_LOG'),
-        ),
-      );
-    }
-
-    // Add JWT Token Interceptor
+    // Add Logging Interceptor
     dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final token = await SecureStorageHelper.getJwtToken();
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
-            dev.log('[REQUEST] JWT token added', name: 'API_AUTH');
-          }
-          return handler.next(options);
-        },
-        onError: (error, handler) async {
-          if (error.response?.statusCode == 401) {
-            await SecureStorageHelper.clearAllTokens();
-            dev.log('[AUTH] Session expired - Token cleared', name: 'API_AUTH');
-          }
-          return handler.next(error);
-        },
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: true,
+        error: true,
+        compact: false,
+        maxWidth: 120,
+        logPrint: (object) => dev.log(object.toString(), name: 'API_LOG'),
       ),
     );
 
-    // Add Custom Detailed Logging - Only in debug mode
-    if (kDebugMode) {
-      dio.interceptors.add(
-        InterceptorsWrapper(
-          onRequest: (options, handler) {
-            dev.log('[REQUEST] ${options.method} ${options.path}', name: 'API_DETAILED');
-            return handler.next(options);
-          },
-          onResponse: (response, handler) {
-            dev.log('[RESPONSE] ${response.statusCode} - ${response.requestOptions.path}', name: 'API_DETAILED');
-            return handler.next(response);
-          },
-          onError: (error, handler) {
-            dev.log('[ERROR] ${error.message}', name: 'API_ERROR');
-            return handler.next(error);
-          },
-        ),
-      );
-    }
+    // Add Custom Detailed Logging Interceptor
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          dev.log(
+            '[REQUEST] ${options.method} ${options.path}\n'
+            'Base URL: ${options.baseUrl}\n'
+            'Full URL: ${options.uri}\n'
+            'Headers: ${options.headers}\n'
+            'Query Params: ${options.queryParameters}',
+            name: 'API_DETAILED',
+          );
+          
+          final empId = dio.options.headers['X-EMP-ID'];
+          if (empId != null) {
+            options.queryParameters[QueryParams.actorEmpId] = empId;
+            dev.log('[REQUEST] Added Actor EMP ID: $empId', name: 'API_DETAILED');
+          }
+          return handler.next(options);
+        },
+        onResponse: (response, handler) {
+          dev.log(
+            '[RESPONSE] ${response.statusCode}\n'
+            'URL: ${response.requestOptions.uri}\n'
+            'Data: ${response.data}',
+            name: 'API_DETAILED',
+          );
+          return handler.next(response);
+        },
+        onError: (DioException e, handler) {
+          final errorMessage = _handleError(e);
+          dev.log(
+            '[ERROR] $errorMessage\n'
+            'Type: ${e.type}\n'
+            'URL: ${e.requestOptions.uri}\n'
+            'Status Code: ${e.response?.statusCode}\n'
+            'Response: ${e.response?.data}\n'
+            'Error: ${e.error}\n'
+            'Stack Trace: ${e.stackTrace}',
+            name: 'API_ERROR',
+            error: e,
+          );
+          return handler.next(e);
+        },
+      ),
+    );
 
     return dio;
   }
