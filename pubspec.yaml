@@ -26,7 +26,6 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_secure_storage: ^9.0.0
   device_info_plus: ^9.1.0
-  jailbreak_detection: ^2.0.0
 
 dev_dependencies:
   flutter_test:
