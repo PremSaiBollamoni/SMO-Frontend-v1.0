@@ -1,7 +1,21 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -v \"//\\\\|test\")"
+      "Bash(grep -v \"//\\\\|test\")",
+      "Bash(curl -s http://localhost:8080/api-docs)",
+      "Bash(pkill -9 java)",
+      "Bash(python3 -m json.tool)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs kill -9)",
+      "PowerShell(Get-Process java -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "Bash(mvn package *)",
+      "Bash(curl -s \"http://localhost:8080/swagger-ui.html\")",
+      "Bash(xargs grep -l \"PasswordEncoder\\\\|BCrypt\\\\|Crypto\")",
+      "Bash(xargs grep -l \"getCause\\\\|printStackTrace\\\\|System.out\\\\|System.err\")",
+      "Bash(grep -i \"\\\\.java$\")",
+      "Bash(cat)",
+      "Read(//tmp/**)"
     ]
   }
 }
