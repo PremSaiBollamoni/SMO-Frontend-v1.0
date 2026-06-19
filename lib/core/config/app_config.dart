@@ -1,7 +1,7 @@
 /// Application configuration constants
-/// Production deployment
-const String fallbackBaseUrl = 'http://192.168.1.8:8080'; // Local dev
-// const String fallbackBaseUrl = 'https://smobza.thegttech.com/smo'; // Deployed backend
+/// Production deployment - enforce HTTPS only
+const String fallbackBaseUrl = 'http://192.168.1.8:8080'; // Local dev (allow HTTP for dev)
+// const String fallbackBaseUrl = 'https://smobza.thegttech.com/smo'; // Deployed backend (HTTPS only)
 const String appVersion = '1.0';
 const String appName = 'SMO System';
 const String appSubtitle = 'Sewing Machine Operations';
@@ -9,14 +9,29 @@ const String appSubtitle = 'Sewing Machine Operations';
 /// Dynamic Configuration Manager
 class AppConfig {
   static String? _dynamicBaseUrl;
-  
+
   /// Get the current base URL (discovered or fallback)
   static String get baseUrl {
-    return _dynamicBaseUrl ?? fallbackBaseUrl;
+    final url = _dynamicBaseUrl ?? fallbackBaseUrl;
+    // In production, enforce HTTPS
+    if (!isDevEnvironment() && !url.startsWith('https://')) {
+      throw Exception('SECURITY: Production URLs must use HTTPS. Got: $url');
+    }
+    return url;
   }
-  
+
+  /// Check if running in development environment
+  static bool isDevEnvironment() {
+    return fallbackBaseUrl.contains('192.168') || fallbackBaseUrl.contains('localhost');
+  }
+
   /// Set the discovered base URL
   static void setBaseUrl(String url) {
+    // Enforce HTTPS in production
+    if (!isDevEnvironment() && !url.startsWith('https://')) {
+      print('[AppConfig] ERROR: Attempted to set non-HTTPS URL in production: $url');
+      throw Exception('SECURITY: Production URLs must use HTTPS');
+    }
     _dynamicBaseUrl = url;
     print('[AppConfig] Base URL updated to: $url');
   }

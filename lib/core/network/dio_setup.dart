@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'dart:developer' as dev;
 import '../config/app_config.dart';
+import '../security/secure_storage_helper.dart';
 
 /// Centralized Dio setup and configuration
 class DioSetup {
@@ -33,6 +34,26 @@ class DioSetup {
       ),
     );
 
+    // Add JWT Token Interceptor - Adds JWT token to all authenticated requests
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final token = await SecureStorageHelper.getJwtToken();
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+            dev.log('[REQUEST] JWT token added to Authorization header', name: 'API_AUTH');
+          }
+          return handler.next(options);
+        },
+        onError: (error, handler) {
+          if (error.response?.statusCode == 401) {
+            dev.log('[AUTH] Unauthorized - Token may have expired', name: 'API_AUTH');
+          }
+          return handler.next(error);
+        },
+      ),
+    );
+
     // Add Custom Detailed Logging Interceptor
     dio.interceptors.add(
       InterceptorsWrapper(
@@ -45,7 +66,7 @@ class DioSetup {
             'Query Params: ${options.queryParameters}',
             name: 'API_DETAILED',
           );
-          
+
           final empId = dio.options.headers['X-EMP-ID'];
           if (empId != null) {
             options.queryParameters[QueryParams.actorEmpId] = empId;

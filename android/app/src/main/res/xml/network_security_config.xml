@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Default configuration - require HTTPS for all domains -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">example.com</domain>
+    </domain-config>
+
+    <!-- Development configuration - allow cleartext only for localhost and local IPs -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">192.168.1.0</domain>
+        <domain includeSubdomains="true">192.168.0.0</domain>
+        <domain includeSubdomains="true">10.0.0.0</domain>
+    </domain-config>
+
+    <!-- Pin certificates for production domains if needed -->
+    <!-- <pin-set expiration="2025-12-31">
+        <pin digest="SHA-256">your-certificate-pin-here</pin>
+    </pin-set> -->
+</network-security-config>

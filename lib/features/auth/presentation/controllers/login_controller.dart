@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/security/secure_storage_helper.dart';
 import '../../data/models/login_request.dart';
 import '../../domain/models/role_response.dart';
 import '../../../../core/routing/app_router.dart';
@@ -30,6 +31,22 @@ class LoginController extends GetxController {
         final prefs = await SharedPreferences.getInstance();
 
         ApiClient().setEmpId(roleResponse.empId);
+
+        // Store JWT token securely
+        if (roleResponse.token != null) {
+          await SecureStorageHelper.saveJwtToken(roleResponse.token!);
+        }
+        if (roleResponse.refreshToken != null) {
+          await SecureStorageHelper.saveRefreshToken(roleResponse.refreshToken!);
+        }
+        if (roleResponse.tokenExpiresIn != null) {
+          final expiryTime = DateTime.now().add(
+            Duration(milliseconds: roleResponse.tokenExpiresIn!.toInt()),
+          );
+          await SecureStorageHelper.saveTokenExpiry(expiryTime);
+        }
+
+        // Store non-sensitive data in shared preferences
         await prefs.setString('EMPLOYEE_NAME', roleResponse.employeeName);
         await prefs.setString('EMP_ID', roleResponse.empId);
         await prefs.setString('ALL_ROLES', encodeRoles(roleResponse.allRoles));
