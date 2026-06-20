@@ -3,7 +3,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../data/api/production_api_service.dart';
 import '../../data/models/production_models.dart';
 import 'report_screen.dart';
-import 'worker_slots_screen.dart';
+import 'employee_detail_screen.dart';
 
 class EfficiencyScreen extends StatefulWidget {
   final String supervisorEmpId;
@@ -152,8 +152,8 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
                           final rankLabel = rank == 0 ? '🥇' : rank == 1 ? '🥈' : rank == 2 ? '🥉' : '#${rank + 1}';
                           return GestureDetector(
                             onTap: () async {
-                              final worker = await _api.getEmployeeSlots(emp.empId, _selectedDate);
-                              if (mounted) Navigator.push(context, MaterialPageRoute(builder: (_) => WorkerSlotsScreen(worker: worker)));
+                              final ops = await _api.getEmployeeSlots(emp.empId, _selectedDate);
+                              if (mounted) Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeDetailScreen(empName: emp.empName, operations: ops)));
                             },
                             child: Container(
                             margin: const EdgeInsets.only(bottom: 10),
