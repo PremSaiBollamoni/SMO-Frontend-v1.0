@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
-import '../../../../core/config/app_config.dart';
-import '../../../../core/network/dio_setup.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class _AttRecord {
@@ -39,7 +37,7 @@ class AttendanceReportScreen extends StatefulWidget {
 }
 
 class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
-  late final Dio _dio;
+  final _dio = ApiClient().dio;
   DateTime _selectedDate = DateTime.now();
   List<_AttRecord> _records = [];
   bool _loading = true;
@@ -49,7 +47,6 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
   @override
   void initState() {
     super.initState();
-    _dio = createDio(AppConfig.baseUrl);
     _load();
   }
 

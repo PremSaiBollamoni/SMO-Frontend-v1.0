@@ -201,7 +201,7 @@ class _ReportScreenState extends State<ReportScreen> {
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
-        child: const Text('Powered by Claude (claude-haiku-4-5)', style: TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+        child: const Text('Powered by Gemini (gemini-2.0-flash-preview)', style: TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w600)),
       ),
       const SizedBox(height: 12),
       ...sections.entries.map((e) => Container(
