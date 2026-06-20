@@ -14,6 +14,7 @@ import '../widgets/create_role_dialog.dart';
 import '../widgets/create_employee_dialog.dart';
 import '../../domain/models/employee_profile_model.dart';
 import 'shift_management_screen.dart';
+import 'attendance_report_screen.dart';
 
 class HrDashboardScreen extends StatefulWidget {
   final String? empId;
@@ -180,7 +181,7 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
     if (_has('HR_ATTENDANCE_REPORT')) {
       management.add(FeatureCard(
         icon: Icons.fact_check_outlined, label: 'Attendance Reports',
-        screen: const Center(child: Text('Attendance Reports — Coming Soon')), color: const Color(0xFF7B61FF),
+        screen: const AttendanceReportScreen(), color: const Color(0xFF7B61FF),
       ));
     }
     if (_has('HR_MANAGE_EMPLOYEES')) {
