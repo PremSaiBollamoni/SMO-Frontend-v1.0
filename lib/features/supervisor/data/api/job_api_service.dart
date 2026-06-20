@@ -35,4 +35,10 @@ class JobApiService {
     final res = await _dio.get('/api/jobs');
     return (res.data as List).map((j) => ActiveJob.fromJson(j)).toList();
   }
+
+  Future<List<ActiveJob>> getJobsByDate(DateTime date) async {
+    final d = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final res = await _dio.get('/api/jobs/date', queryParameters: {'date': d});
+    return (res.data as List).map((j) => ActiveJob.fromJson(j)).toList();
+  }
 }
