@@ -32,7 +32,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 3, vsync: this);
+    _tabs = TabController(length: 4, vsync: this);
     _loadData();
   }
 
@@ -128,6 +128,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white70,
                   tabs: const [
+                    Tab(text: 'Scan'),
                     Tab(text: 'All'),
                     Tab(text: 'Active'),
                     Tab(text: 'History'),
@@ -151,6 +152,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           child: TabBarView(
             controller: _tabs,
             children: [
+              ScanTab(
+                supervisorEmpId: int.parse(widget.supervisorEmpId),
+                employees: _employees,
+                shifts: _shifts,
+                api: _api,
+                onSuccess: _loadData,
+              ),
               LogTab(records: _todayRecords, loading: _loading, onRefresh: _loadData),
               LogTab(records: _activeRecords, loading: _loading, onRefresh: _loadData),
               LogTab(records: _historyRecords, loading: _loading, onRefresh: _loadData),

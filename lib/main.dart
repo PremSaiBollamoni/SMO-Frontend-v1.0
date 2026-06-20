@@ -35,10 +35,20 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _initializeApp() async {
-    Get.put(ServiceDiscoveryService());
+    final discovery = Get.put(ServiceDiscoveryService());
 
     // Check device security (jailbreak/root detection)
     await JailbreakDetectionService.checkDeviceSecurityOnStartup();
+
+    try {
+      final discoveredUrl = await discovery.discoverBackend();
+      if (discoveredUrl != null) {
+        AppConfig.setBaseUrl(discoveredUrl);
+        ApiClient().dio.options.baseUrl = discoveredUrl;
+      }
+    } catch (e) {
+      print('[Initialization] Service discovery failed: $e');
+    }
 
     await _restoreSession();
     _checkBackendConnection();

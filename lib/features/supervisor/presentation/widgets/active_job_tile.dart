@@ -95,6 +95,50 @@ class _ActiveJobTileState extends State<ActiveJobTile> {
   }
 }
 
+class CompletedJobTile extends StatelessWidget {
+  final ActiveJob job;
+  final VoidCallback onTap;
+  const CompletedJobTile({super.key, required this.job, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final eff = job.efficiencyPct ?? (job.elapsedSeconds > 0 ? (job.samValue * job.bundleQty) / (job.elapsedSeconds / 60) * 100 : 0.0);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.green.shade200),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
+        ),
+        child: Row(children: [
+          Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(10)),
+            child: Icon(Icons.task_alt_rounded, color: Colors.green.shade600, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(job.empName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+            Text('${job.opName} · ${job.bundleQty} pcs', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+            if (job.endTime != null)
+              Text('Completed: ${job.endTime.toString().substring(0, 16)}', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
+          ])),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.green.shade300)),
+            child: Text('${eff.toStringAsFixed(0)}%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.green.shade700)),
+          ),
+          const SizedBox(width: 6),
+          Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400, size: 18),
+        ]),
+      ),
+    );
+  }
+}
+
 class _MetricChip extends StatelessWidget {
   final String label;
   final IconData icon;

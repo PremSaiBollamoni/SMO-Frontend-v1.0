@@ -13,6 +13,8 @@ class ActiveJob {
   final int elapsedSeconds;
   final String status;
   final DateTime? endTime;
+  final double? efficiencyPct;
+  final int? targetPcs;
 
   const ActiveJob({
     required this.jobId,
@@ -29,6 +31,8 @@ class ActiveJob {
     required this.elapsedSeconds,
     required this.status,
     this.endTime,
+    this.efficiencyPct,
+    this.targetPcs,
   });
 
   factory ActiveJob.fromJson(Map<String, dynamic> j) => ActiveJob(
@@ -46,6 +50,8 @@ class ActiveJob {
     elapsedSeconds: j['elapsedSeconds'] ?? 0,
     status: j['status'] ?? '',
     endTime: j['endTime'] != null ? DateTime.parse(j['endTime']) : null,
+    efficiencyPct: (j['efficiencyPct'] as num?)?.toDouble(),
+    targetPcs: j['targetPcs'] as int?,
   );
 }
 

@@ -5,6 +5,8 @@ import 'package:multicast_dns/multicast_dns.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 
+import '../config/app_config.dart';
+
 /// Service Discovery for SMO Backend
 /// Automatically discovers SMO backend services on the local network
 class ServiceDiscoveryService extends GetxService {
@@ -32,22 +34,38 @@ class ServiceDiscoveryService extends GetxService {
     
     // Step 1: Try cached URL first
     if (_cachedBackendUrl != null) {
-      print('[ServiceDiscovery] Trying cached URL: $_cachedBackendUrl');
-      if (await _validateBackend(_cachedBackendUrl!)) {
-        print('[ServiceDiscovery] ✓ Cached backend is available');
-        return _cachedBackendUrl;
-      } else {
-        print('[ServiceDiscovery] ✗ Cached backend is not available, clearing cache');
+      // In dev environment, invalidate any non-local cached URLs (like production) to force local testing
+      if (AppConfig.isDevEnvironment() && 
+          !_cachedBackendUrl!.contains('localhost') && 
+          !_cachedBackendUrl!.contains('10.0.2.2') && 
+          !_cachedBackendUrl!.contains('192.168') && 
+          !_cachedBackendUrl!.contains('172.') &&
+          !_cachedBackendUrl!.contains('10.')) {
+        print('[ServiceDiscovery] Invaliding non-local cached URL in dev: $_cachedBackendUrl');
         _cachedBackendUrl = null;
         await _clearCachedUrl();
+      } else {
+        print('[ServiceDiscovery] Trying cached URL: $_cachedBackendUrl');
+        if (await _validateBackend(_cachedBackendUrl!)) {
+          print('[ServiceDiscovery] ✓ Cached backend is available');
+          return _cachedBackendUrl;
+        } else {
+          print('[ServiceDiscovery] ✗ Cached backend is not available, clearing cache');
+          _cachedBackendUrl = null;
+          await _clearCachedUrl();
+        }
       }
     }
     
-    // Step 2: Try production server first
-    print('[ServiceDiscovery] Trying production server...');
-    if (await _validateBackend('https://smobza.thegttech.com/smo')) {
-      await _cacheUrl('https://smobza.thegttech.com/smo');
-      return 'https://smobza.thegttech.com/smo';
+    // Step 2: Try production server (only if not in dev environment)
+    if (!AppConfig.isDevEnvironment()) {
+      print('[ServiceDiscovery] Trying production server...');
+      if (await _validateBackend('https://smobza.thegttech.com/smo')) {
+        await _cacheUrl('https://smobza.thegttech.com/smo');
+        return 'https://smobza.thegttech.com/smo';
+      }
+    } else {
+      print('[ServiceDiscovery] Dev environment detected. Skipping production server check.');
     }
     
     // Step 3: Try localhost (for development)
@@ -55,6 +73,15 @@ class ServiceDiscoveryService extends GetxService {
     if (await _validateBackend('http://localhost:8080')) {
       await _cacheUrl('http://localhost:8080');
       return 'http://localhost:8080';
+    }
+
+    // Try emulator loopback (for android emulator)
+    if (Platform.isAndroid) {
+      print('[ServiceDiscovery] Trying emulator loopback (10.0.2.2)...');
+      if (await _validateBackend('http://10.0.2.2:8080')) {
+        await _cacheUrl('http://10.0.2.2:8080');
+        return 'http://10.0.2.2:8080';
+      }
     }
     
     // Step 3: Try current machine IP

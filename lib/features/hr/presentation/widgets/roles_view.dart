@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../controller/hr_controller.dart';
 import 'role_list_item.dart';
+import 'role_status_filter.dart';
 
 /// Roles management view widget
 class RolesView extends StatelessWidget {
@@ -113,61 +114,62 @@ class RolesView extends StatelessWidget {
       return Column(
         children: [
           // Search and filter bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    onChanged: (value) =>
-                        controller.roleSearchQuery.value = value,
-                    decoration: AppTheme.inputDecoration('Search roles...'),
-                  ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+            child: Column(children: [
+              TextField(
+                onChanged: (v) => controller.roleSearchQuery.value = v,
+                decoration: InputDecoration(
+                  hintText: 'Search roles...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppTheme.surfaceVariant)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppTheme.surfaceVariant)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+                  filled: true, fillColor: AppTheme.surface,
                 ),
-                const SizedBox(width: 8),
-                DropdownButton<String>(
-                  value: controller.roleStatusFilter.value,
-                  items: ['ALL', 'ACTIVE', 'INACTIVE']
-                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      controller.roleStatusFilter.value = value;
-                    }
-                  },
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 8),
+              Row(children: [
+                RoleStatusFilter(controller: controller),
+                const Spacer(),
+                _iconBtn(Icons.refresh_rounded, AppTheme.primary, controller.fetchRoles, context),
+              ]),
+            ]),
           ),
           // Bulk delete bar
           if (selectedCount > 0)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: AppTheme.primary.withValues(alpha: 0.1),
-              child: Row(
-                children: [
-                  Text(
-                    '$selectedCount selected',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+              margin: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(12)),
+              child: Row(children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text('$selectedCount selected', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+                const Spacer(),
+                GestureDetector(
+                  onTap: controller.clearRoleSelections,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+                    child: const Text('Clear', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
                   ),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: () => controller.clearRoleSelections(),
-                    icon: const Icon(Icons.clear),
-                    label: const Text('Clear'),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => _deleteBulkRoles(context, controller),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(color: AppTheme.error, borderRadius: BorderRadius.circular(8)),
+                    child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.delete_rounded, color: Colors.white, size: 15),
+                      SizedBox(width: 4),
+                      Text('Delete', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                    ]),
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => _deleteBulkRoles(context, controller),
-                    icon: const Icon(Icons.delete),
-                    label: const Text('Delete'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.error,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ]),
             ),
           // Role list
           Expanded(
@@ -203,14 +205,11 @@ class RolesView extends StatelessWidget {
                       final role = filteredRoles[index];
                       return RoleListItem(
                         role: role,
-                        isSelected: controller.selectedRoleIds.contains(
-                          role.roleId.toString(),
-                        ),
-                        onCheckboxChanged: () => controller.toggleRoleSelection(
-                          role.roleId.toString(),
-                        ),
-                        onDelete: () =>
-                            _deleteRole(context, controller, role.roleId),
+                        isSelected: controller.selectedRoleIds.contains(role.roleId.toString()),
+                        isSelectionMode: controller.selectedRoleIds.isNotEmpty,
+                        onLongPress: () => controller.toggleRoleSelection(role.roleId.toString()),
+                        onCheckboxChanged: () => controller.toggleRoleSelection(role.roleId.toString()),
+                        onDelete: () => _deleteRole(context, controller, role.roleId),
                       );
                     },
                   ),
@@ -219,4 +218,14 @@ class RolesView extends StatelessWidget {
       );
     });
   }
+
+  static Widget _iconBtn(IconData icon, Color color, VoidCallback onTap, BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(10),
+    child: Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+      child: Icon(icon, color: color, size: 20),
+    ),
+  );
 }

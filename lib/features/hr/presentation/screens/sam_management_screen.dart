@@ -343,10 +343,7 @@ class _SamManagementScreenState extends State<SamManagementScreen> {
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Operations & SAM', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-          Text('Manage operations & time standards', style: TextStyle(fontSize: 11, color: Colors.white70)),
-        ]),
+        title: const Text('Operations & SAM'),
         actions: [
           IconButton(
             tooltip: 'Import from Excel',

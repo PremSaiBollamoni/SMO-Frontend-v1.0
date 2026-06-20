@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/widgets/dashboard_shell.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../login_screen.dart';
 import '../../../../profile_tab.dart';
 import '../controller/hr_controller.dart';
@@ -12,10 +13,7 @@ import '../widgets/employees_view.dart';
 import '../widgets/create_role_dialog.dart';
 import '../widgets/create_employee_dialog.dart';
 import '../../domain/models/employee_profile_model.dart';
-import '../../../../core/theme/app_theme.dart';
 import 'shift_management_screen.dart';
-import 'station_management_screen.dart';
-import 'sam_management_screen.dart';
 
 class HrDashboardScreen extends StatefulWidget {
   final String? empId;
@@ -40,7 +38,6 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
   String _empId = '';
   String _employeeName = 'HR';
   List<String> _acts = [];
-
   @override
   void initState() {
     super.initState();
@@ -51,11 +48,9 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
     final prefs = await SharedPreferences.getInstance();
     _employeeName = widget.employeeName ?? prefs.getString('EMPLOYEE_NAME') ?? 'HR';
     _empId = widget.empId ?? prefs.getString('EMP_ID') ?? '';
-
     final stored = prefs.getString('ACTIVITIES') ?? '';
     _acts = widget.activities ??
         stored.split(',').map((a) => a.trim().toUpperCase()).where((a) => a.isNotEmpty).toList();
-
     ApiClient().setEmpId(_empId);
     _controller.initialize(_empId, _employeeName);
     await _controller.refreshAll();
@@ -74,77 +69,6 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
     );
   }
 
-  List<FeatureGroup> _buildGroups() {
-    final management = <FeatureCard>[];
-
-    if (_has('HR_DASHBOARD')) {
-      management.add(FeatureCard(
-        icon: Icons.dashboard_outlined,
-        label: 'Dashboard',
-        screen: DashboardView(),
-        color: AppTheme.primary,
-      ));
-    }
-
-    if (_has('HR_MANAGE_ROLES')) {
-      management.add(FeatureCard(
-        icon: Icons.badge_outlined,
-        label: 'Role Management',
-        screen: const RolesView(),
-        color: AppTheme.secondary,
-        fab: FloatingActionButton(
-          onPressed: _showCreateRoleDialog,
-          child: const Icon(Icons.add),
-        ),
-      ));
-    }
-
-    if (_has('HR_MANAGE_EMPLOYEES')) {
-      management.add(FeatureCard(
-        icon: Icons.people_outlined,
-        label: 'Employee Management',
-        screen: EmployeesView(onEmployeeTap: _showEmployeeProfile),
-        color: AppTheme.tertiary,
-        fab: FloatingActionButton(
-          onPressed: _showCreateEmployeeDialog,
-          child: const Icon(Icons.add),
-        ),
-      ));
-    }
-
-    if (_has('HR_ATTENDANCE_REPORT')) {
-      management.add(FeatureCard(
-        icon: Icons.fact_check_outlined,
-        label: 'Attendance Reports',
-        screen: const Center(child: Text('Attendance Reports — Coming Soon')),
-        color: const Color(0xFF7B61FF),
-      ));
-    }
-
-    if (_has('HR_MANAGE_EMPLOYEES')) {
-      management.add(FeatureCard.lazy(
-        icon: Icons.schedule_outlined,
-        label: 'Shifts & Breaks',
-        screenBuilder: () => ShiftManagementScreen(empId: _empId),
-        color: const Color(0xFF00897B),
-        hasOwnScaffold: true,
-      ));
-    }
-
-    final account = <FeatureCard>[
-      FeatureCard(
-        icon: Icons.person_outline,
-        label: 'My Profile',
-        screen: ProfileTab(empId: _empId.trim()),
-        color: AppTheme.onSurfaceVariant,
-      ),
-    ];
-
-    return [
-      if (management.isNotEmpty) FeatureGroup(title: 'Management', cards: management),
-      FeatureGroup(title: 'Account', cards: account),
-    ];
-  }
 
   Future<void> _showEmployeeProfile(String empId) async {
     final profile = await _controller.fetchEmployeeProfile(empId);
@@ -235,13 +159,53 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
     }
   }
 
+  List<FeatureGroup> _buildGroups() {
+    final management = <FeatureCard>[];
+    if (_has('HR_DASHBOARD')) {
+      management.add(FeatureCard(icon: Icons.dashboard_outlined, label: 'Dashboard', screen: DashboardView(), color: AppTheme.primary));
+    }
+    if (_has('HR_MANAGE_ROLES')) {
+      management.add(FeatureCard(
+        icon: Icons.badge_outlined, label: 'Role Management', screen: const RolesView(), color: AppTheme.secondary,
+        fab: FloatingActionButton(onPressed: _showCreateRoleDialog, child: const Icon(Icons.add)),
+      ));
+    }
+    if (_has('HR_MANAGE_EMPLOYEES')) {
+      management.add(FeatureCard(
+        icon: Icons.people_outlined, label: 'Employee Management',
+        screen: EmployeesView(onEmployeeTap: _showEmployeeProfile), color: AppTheme.tertiary,
+        fab: FloatingActionButton(onPressed: _showCreateEmployeeDialog, child: const Icon(Icons.add)),
+      ));
+    }
+    if (_has('HR_ATTENDANCE_REPORT')) {
+      management.add(FeatureCard(
+        icon: Icons.fact_check_outlined, label: 'Attendance Reports',
+        screen: const Center(child: Text('Attendance Reports — Coming Soon')), color: const Color(0xFF7B61FF),
+      ));
+    }
+    if (_has('HR_MANAGE_EMPLOYEES')) {
+      management.add(FeatureCard.lazy(
+        icon: Icons.schedule_outlined, label: 'Shifts & Breaks',
+        screenBuilder: () => ShiftManagementScreen(empId: _empId),
+        color: const Color(0xFF00897B), hasOwnScaffold: true,
+      ));
+    }
+    final account = <FeatureCard>[
+      FeatureCard(icon: Icons.person_outline, label: 'My Profile', screen: ProfileTab(empId: _empId.trim()), color: AppTheme.onSurfaceVariant),
+    ];
+    return [
+      if (management.isNotEmpty) FeatureGroup(title: 'Management', cards: management),
+      FeatureGroup(title: 'Account', cards: account),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return DashboardShell(
       title: 'HR / Admin',
       employeeName: _employeeName,
       empId: _empId,
-      role: 'HR/Admin',
+      role: 'HR',
       roleIcon: Icons.admin_panel_settings_outlined,
       groups: _buildGroups(),
       onLogout: _logout,

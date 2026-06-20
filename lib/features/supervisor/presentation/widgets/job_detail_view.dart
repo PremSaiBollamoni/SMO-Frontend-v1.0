@@ -35,7 +35,10 @@ class _JobDetailViewState extends State<JobDetailView> {
         final estMin = widget.job.estMinutes;
         final remaining = (estMin - elapsedMin).clamp(0.0, double.infinity);
         final isOverdue = !isCompleted && elapsedMin > estMin;
-        final efficiency = elapsedMin > 0 ? (estMin / elapsedMin * 100) : 0.0;
+        // Use backend efficiency for completed jobs; live SAM-based calc for active jobs
+        final efficiency = isCompleted && widget.job.efficiencyPct != null
+            ? widget.job.efficiencyPct!
+            : elapsedMin > 0 ? (widget.job.samValue * widget.job.bundleQty) / elapsedMin * 100 : 0.0;
         final color = isCompleted ? AppTheme.success
             : isOverdue ? AppTheme.error
             : AppTheme.success;
@@ -120,7 +123,7 @@ class _JobDetailViewState extends State<JobDetailView> {
               ]),
               const SizedBox(height: 12),
               Row(children: [
-                Expanded(child: MetricPill('Target Pcs/Hr', '${(widget.job.bundleQty / (widget.job.estMinutes / 60)).toStringAsFixed(1)}', Icons.trending_up_outlined, AppTheme.secondary)),
+                Expanded(child: MetricPill('Target Pcs/Hr', '${widget.job.targetPcs ?? (widget.job.bundleQty / (widget.job.estMinutes / 60)).toStringAsFixed(1)}', Icons.trending_up_outlined, AppTheme.secondary)),
                 const SizedBox(width: 8),
                 Expanded(child: MetricPill('Actual Pcs/Hr', '${elapsedMin > 0 ? (widget.job.bundleQty / (elapsedMin / 60)).toStringAsFixed(1) : '0'}', Icons.speed_outlined, color)),
               ]),

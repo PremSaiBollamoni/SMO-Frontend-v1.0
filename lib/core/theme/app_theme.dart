@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// Centralized Theme Configuration — Light mode only
 class AppTheme {
-  // Deep Teal + Amber palette (industrial, professional, high-contrast)
-  static const Color primary = Color(0xFF0F4C5C);
-  static const Color primaryVariant = Color(0xFF093A47);
+  static const Color primary = Color(0xFF1E293B);
+  static const Color primaryVariant = Color(0xFF0F172A);
   static const Color onPrimary = Color(0xFFFFFFFF);
   static const Color secondary = Color(0xFFE8871E);
   static const Color onSecondary = Color(0xFFFFFFFF);
@@ -21,38 +20,62 @@ class AppTheme {
   static const Color info = Color(0xFF0277BD);
   static const Color warning = Color(0xFFE8871E);
 
-  // Backward-compat aliases (dark theme removed, these map to light values)
   static const Color darkBackground = background;
   static const Color darkSurface = surface;
   static const Color darkOnSurface = onSurface;
   static const Color darkSurfaceVariant = surfaceVariant;
   static const Color darkOnSurfaceVariant = onSurfaceVariant;
 
-  static const String _fontFamily = 'sans-serif';
+  // Role colors — single source of truth
+  static const Color roleOperator = Color(0xFF7B5EA7);
+  static const Color roleStore = Color(0xFF00838F);
+  static const Color roleQc = Color(0xFF2E7D32);
+  static const Color rolePurchase = Color(0xFFE8871E);
+  static const Color roleGm = Color(0xFF1565C0);
+  static const Color rolePlanner = Color(0xFF5B8C5A);
+  static const Color roleEfficiency = Color(0xFF7B61FF);
+  static const Color roleOperations = Color(0xFFE65100);
+  static const Color roleStations = Color(0xFF00897B);
+
+  static Color roleColor(String role) {
+    switch (role.toUpperCase()) {
+      case 'SUPERVISOR': return primary;
+      case 'HR': case 'ADMIN': return info;
+      case 'GM': return roleGm;
+      case 'PROCESS PLANNER': return rolePlanner;
+      case 'STORE MANAGER': return roleStore;
+      case 'QC ENGINEER': case 'QC MANAGER': return roleQc;
+      case 'PURCHASE MANAGER': return rolePurchase;
+      default: return roleOperator;
+    }
+  }
 
   // Text styles
-  static TextStyle get displayLarge => TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: onSurface, height: 1.2, fontFamily: _fontFamily);
-  static TextStyle get displayMedium => TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: onSurface, height: 1.2, fontFamily: _fontFamily);
-  static TextStyle get displaySmall => TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: onSurface, height: 1.2, fontFamily: _fontFamily);
-  static TextStyle get headlineLarge => TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: onSurface, height: 1.3, fontFamily: _fontFamily);
-  static TextStyle get headlineMedium => TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: onSurface, height: 1.3, fontFamily: _fontFamily);
-  static TextStyle get headlineSmall => TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: onSurface, height: 1.4, fontFamily: _fontFamily);
-  static TextStyle get titleLarge => TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: onSurface, height: 1.4, fontFamily: _fontFamily);
-  static TextStyle get titleMedium => TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: onSurface, height: 1.4, fontFamily: _fontFamily);
-  static TextStyle get titleSmall => TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: onSurface, height: 1.4, fontFamily: _fontFamily);
-  static TextStyle get bodyLarge => TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: onSurface, height: 1.5, fontFamily: _fontFamily);
-  static TextStyle get bodyMedium => TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: onSurface, height: 1.5, fontFamily: _fontFamily);
-  static TextStyle get bodySmall => TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: onSurface, height: 1.5, fontFamily: _fontFamily);
-  static TextStyle get labelLarge => TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: onPrimary, height: 1.5, fontFamily: _fontFamily);
-  static TextStyle get labelMedium => TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: onPrimary, height: 1.5, fontFamily: _fontFamily);
-  static TextStyle get labelSmall => TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: onPrimary, height: 1.5, fontFamily: _fontFamily);
+  static TextStyle _t(double size, FontWeight w, {Color c = onSurface, double h = 1.4}) =>
+      GoogleFonts.plusJakartaSans(fontSize: size, fontWeight: w, color: c, height: h);
+
+  static TextStyle get displayLarge => _t(32, FontWeight.w700, h: 1.2);
+  static TextStyle get displayMedium => _t(28, FontWeight.w600, h: 1.2);
+  static TextStyle get displaySmall => _t(24, FontWeight.w600, h: 1.2);
+  static TextStyle get headlineLarge => _t(22, FontWeight.w700, h: 1.3);
+  static TextStyle get headlineMedium => _t(20, FontWeight.w700, h: 1.3);
+  static TextStyle get headlineSmall => _t(18, FontWeight.w600, h: 1.4);
+  static TextStyle get titleLarge => _t(16, FontWeight.w700);
+  static TextStyle get titleMedium => _t(15, FontWeight.w600);
+  static TextStyle get titleSmall => _t(14, FontWeight.w600);
+  static TextStyle get bodyLarge => _t(16, FontWeight.w400, h: 1.5);
+  static TextStyle get bodyMedium => _t(14, FontWeight.w400, h: 1.5);
+  static TextStyle get bodySmall => _t(12, FontWeight.w400, h: 1.5);
+  static TextStyle get labelLarge => _t(14, FontWeight.w600, c: onPrimary);
+  static TextStyle get labelMedium => _t(12, FontWeight.w600, c: onPrimary);
+  static TextStyle get labelSmall => _t(11, FontWeight.w600, c: onPrimary);
 
   // Button styles
   static final ButtonStyle primaryButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: primary, foregroundColor: onPrimary, elevation: 2,
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, fontFamily: _fontFamily),
+    textStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16),
     shadowColor: primary.withValues(alpha: 0.3),
   );
 
@@ -60,7 +83,7 @@ class AppTheme {
     backgroundColor: secondary, foregroundColor: onSecondary, elevation: 2,
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, fontFamily: _fontFamily),
+    textStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16),
     shadowColor: secondary.withValues(alpha: 0.3),
   );
 
@@ -68,7 +91,7 @@ class AppTheme {
     backgroundColor: tertiary, foregroundColor: onPrimary, elevation: 2,
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, fontFamily: _fontFamily),
+    textStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16),
     shadowColor: tertiary.withValues(alpha: 0.3),
   );
 
@@ -77,76 +100,70 @@ class AppTheme {
     side: const BorderSide(color: primary, width: 2),
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, fontFamily: _fontFamily),
+    textStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16),
   );
 
   static final ButtonStyle textButtonStyle = TextButton.styleFrom(
     foregroundColor: primary,
-    textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, fontFamily: _fontFamily),
+    textStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 16),
   );
 
   // Input decoration
-  static InputDecoration inputDecoration(String label) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(color: primaryVariant, fontWeight: FontWeight.w500, fontFamily: _fontFamily),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: surfaceVariant, width: 1.5)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: primary, width: 2.5)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: surfaceVariant, width: 1.5)),
-      errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: error, width: 2)),
-      focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: error, width: 2.5)),
-      filled: true,
-      fillColor: surface,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-    );
-  }
+  static InputDecoration inputDecoration(String label) => InputDecoration(
+    labelText: label,
+    labelStyle: GoogleFonts.plusJakartaSans(color: primaryVariant, fontWeight: FontWeight.w500),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: surfaceVariant, width: 1.5)),
+    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: primary, width: 2.5)),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: surfaceVariant, width: 1.5)),
+    errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: error, width: 2)),
+    focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: error, width: 2.5)),
+    filled: true, fillColor: surface,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+  );
 
-  // Card decoration
+  // Card decorations
   static BoxDecoration cardDecoration = BoxDecoration(
-    color: surface,
-    borderRadius: BorderRadius.circular(16),
+    color: surface, borderRadius: BorderRadius.circular(16),
     boxShadow: [
-      BoxShadow(color: onSurface.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4)),
-      BoxShadow(color: onSurface.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2)),
+      BoxShadow(color: onSurface.withValues(alpha: 0.07), blurRadius: 16, offset: const Offset(0, 4)),
+      BoxShadow(color: onSurface.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 1)),
     ],
   );
 
-  // Backward-compat alias
-  static BoxDecoration get darkCardDecoration => cardDecoration;
-
-  // Dark input decoration alias (same as light)
-  static InputDecoration darkInputDecoration(String label) => inputDecoration(label);
-
-  // App bar theme
-  static AppBarTheme get appBarTheme => AppBarTheme(
-    backgroundColor: primary, foregroundColor: onPrimary, elevation: 0, centerTitle: false,
-    titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: onPrimary, fontFamily: _fontFamily),
-    toolbarHeight: 64,
+  static BoxDecoration highlightCardDecoration(Color color) => BoxDecoration(
+    color: surface, borderRadius: BorderRadius.circular(16),
+    border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
+    boxShadow: [BoxShadow(color: color.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, 4))],
   );
 
-  // Chip theme
+  static BoxDecoration get darkCardDecoration => cardDecoration;
+  static InputDecoration darkInputDecoration(String label) => inputDecoration(label);
+
+  static AppBarTheme get appBarTheme => AppBarTheme(
+    backgroundColor: primary, foregroundColor: onPrimary, elevation: 0, centerTitle: false,
+    titleTextStyle: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w800, color: onPrimary),
+    toolbarHeight: 52,
+  );
+
   static ChipThemeData get chipTheme => ChipThemeData(
     backgroundColor: surfaceVariant,
-    labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: onSurface, fontFamily: _fontFamily),
+    labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w500, color: onSurface),
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
   );
 
-  // FAB theme
   static FloatingActionButtonThemeData floatingActionButtonTheme = FloatingActionButtonThemeData(
     backgroundColor: secondary, foregroundColor: onSecondary,
     elevation: 6, focusElevation: 8, hoverElevation: 8, disabledElevation: 0,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
   );
 
-  // Bottom nav theme
   static BottomNavigationBarThemeData get bottomNavigationBarTheme => BottomNavigationBarThemeData(
     backgroundColor: surface, selectedItemColor: primary, unselectedItemColor: onSurfaceVariant, elevation: 8,
-    selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, fontFamily: _fontFamily),
-    unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 12, fontFamily: _fontFamily),
+    selectedLabelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 12),
+    unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w500, fontSize: 12),
   );
 
-  // Theme data (light only)
   static ThemeData get themeData => ThemeData(
     primaryColor: primary,
     colorScheme: const ColorScheme(
@@ -164,23 +181,23 @@ class AppTheme {
     floatingActionButtonTheme: floatingActionButtonTheme,
     bottomNavigationBarTheme: bottomNavigationBarTheme,
     chipTheme: chipTheme,
-    textTheme: const TextTheme(
+    textTheme: GoogleFonts.plusJakartaSansTextTheme(const TextTheme(
       displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: onSurface, height: 1.2),
-      displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: onSurface, height: 1.2),
-      displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: onSurface, height: 1.2),
-      headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: onSurface, height: 1.3),
-      headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: onSurface, height: 1.3),
+      displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: onSurface, height: 1.2),
+      displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: onSurface, height: 1.2),
+      headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: onSurface, height: 1.3),
+      headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: onSurface, height: 1.3),
       headlineSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: onSurface, height: 1.4),
-      titleLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: onSurface, height: 1.4),
-      titleMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: onSurface, height: 1.4),
-      titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: onSurface, height: 1.4),
+      titleLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: onSurface, height: 1.4),
+      titleMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: onSurface, height: 1.4),
+      titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: onSurface, height: 1.4),
       bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: onSurface, height: 1.5),
       bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: onSurface, height: 1.5),
       bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: onSurface, height: 1.5),
-      labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: onPrimary, height: 1.5),
-      labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: onPrimary, height: 1.5),
-      labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: onPrimary, height: 1.5),
-    ),
+      labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: onPrimary, height: 1.5),
+      labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: onPrimary, height: 1.5),
+      labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: onPrimary, height: 1.5),
+    )),
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       filled: true, fillColor: surface,
@@ -188,53 +205,24 @@ class AppTheme {
   );
 }
 
-/// Custom Snackbar Utility
 class CustomSnackbar {
-  static void showSuccess(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Row(children: [
-        const Icon(Icons.check_circle, color: AppTheme.onPrimary),
-        const SizedBox(width: 12),
-        Expanded(child: Text(message, style: AppTheme.bodyMedium.copyWith(color: AppTheme.onPrimary))),
-      ]),
-      backgroundColor: AppTheme.success,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      duration: const Duration(seconds: 3),
-    ));
-  }
+  static void showSuccess(BuildContext context, String message) => _show(context, message, AppTheme.success, Icons.check_circle);
+  static void showError(BuildContext context, String message) => _show(context, message, AppTheme.error, Icons.error, duration: 4);
+  static void showInfo(BuildContext context, String message) => _show(context, message, AppTheme.info, Icons.info);
 
-  static void showError(BuildContext context, String message) {
+  static void _show(BuildContext context, String message, Color color, IconData icon, {int duration = 3}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Row(children: [
-        const Icon(Icons.error, color: AppTheme.onPrimary),
+        Icon(icon, color: AppTheme.onPrimary),
         const SizedBox(width: 12),
         Expanded(child: Text(message, style: AppTheme.bodyMedium.copyWith(color: AppTheme.onPrimary))),
       ]),
-      backgroundColor: AppTheme.error,
+      backgroundColor: color,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      duration: const Duration(seconds: 4),
-    ));
-  }
-
-  static void showInfo(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Row(children: [
-        const Icon(Icons.info, color: AppTheme.onPrimary),
-        const SizedBox(width: 12),
-        Expanded(child: Text(message, style: AppTheme.bodyMedium.copyWith(color: AppTheme.onPrimary))),
-      ]),
-      backgroundColor: AppTheme.info,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      duration: const Duration(seconds: 3),
+      duration: Duration(seconds: duration),
     ));
   }
 }

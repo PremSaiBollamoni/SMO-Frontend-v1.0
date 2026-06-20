@@ -70,82 +70,52 @@ class _SupervisorScreenState extends State<SupervisorScreen> {
 
     if (_has('SUPERVISOR_WORK_ASSIGNMENT')) {
       tracking.add(FeatureCard(
-        icon: Icons.qr_code_scanner_outlined,
-        label: 'Work Assignment',
+        icon: Icons.qr_code_scanner_outlined, label: 'Work Assignment',
         screen: StationListScreen(supervisorEmpId: widget.empId),
-        color: AppTheme.primary,
-        hasOwnScaffold: true,
+        color: AppTheme.primary, hasOwnScaffold: true,
       ));
     }
-
     if (_has('SUPERVISOR_EFFICIENCY')) {
       tracking.add(FeatureCard(
-        icon: Icons.bar_chart_outlined,
-        label: 'Efficiency',
+        icon: Icons.bar_chart_outlined, label: 'Efficiency',
         screen: EfficiencyScreen(supervisorEmpId: widget.empId),
-        color: const Color(0xFF7B61FF),
-        hasOwnScaffold: true,
+        color: const Color(0xFF7B61FF), hasOwnScaffold: true,
       ));
     }
-
     if (_has('SUPERVISOR_HISTORY')) {
       tracking.add(FeatureCard(
-        icon: Icons.history_outlined,
-        label: 'Assignment History',
+        icon: Icons.history_outlined, label: 'Assignment History',
         screen: AssignmentHistoryScreen(supervisorEmpId: widget.empId),
-        color: AppTheme.tertiary,
-        hasOwnScaffold: true,
+        color: AppTheme.tertiary, hasOwnScaffold: true,
       ));
     }
-
     if (_has('SUPERVISOR_ATTENDANCE')) {
       management.add(FeatureCard.lazy(
-        icon: Icons.fact_check_outlined,
-        label: 'Attendance',
+        icon: Icons.fact_check_outlined, label: 'Attendance',
         screenBuilder: () => AttendanceScreen(supervisorEmpId: widget.empId),
         color: AppTheme.primary,
       ));
     }
-
     if (_has('SUPERVISOR_LINE_BALANCING')) {
       management.add(FeatureCard(
-        icon: Icons.balance_outlined,
-        label: 'Line Balancing',
+        icon: Icons.balance_outlined, label: 'Line Balancing',
         screen: const _PlaceholderScreen(title: 'Line Balancing', icon: Icons.balance_outlined),
         color: AppTheme.secondary,
       ));
     }
-
     if (_has('SUPERVISOR_WORK_ASSIGNMENT')) {
       management.add(FeatureCard(
-        icon: Icons.timer_outlined,
-        label: 'Operations & SAM',
-        screen: const SamManagementScreen(),
-        color: const Color(0xFFE65100),
-        hasOwnScaffold: true,
+        icon: Icons.timer_outlined, label: 'Operations & SAM',
+        screen: const SamManagementScreen(), color: const Color(0xFFE65100), hasOwnScaffold: true,
       ));
       management.add(FeatureCard(
-        icon: Icons.workspaces_outlined,
-        label: 'Stations',
-        screen: const StationManagementScreen(),
-        color: const Color(0xFF00897B),
-        hasOwnScaffold: true,
+        icon: Icons.workspaces_outlined, label: 'Stations',
+        screen: const StationManagementScreen(), color: const Color(0xFF00897B), hasOwnScaffold: true,
       ));
     }
-
-    final account = <FeatureCard>[
-      FeatureCard(
-        icon: Icons.person_outline,
-        label: 'My Profile',
-        screen: ProfileTab(empId: widget.empId.trim()),
-        color: AppTheme.onSurfaceVariant,
-      ),
-    ];
-
     return [
       if (tracking.isNotEmpty) FeatureGroup(title: 'Tracking', cards: tracking),
       if (management.isNotEmpty) FeatureGroup(title: 'Management', cards: management),
-      FeatureGroup(title: 'Account', cards: account),
     ];
   }
 
@@ -169,18 +139,14 @@ class _PlaceholderScreen extends StatelessWidget {
   const _PlaceholderScreen({required this.title, required this.icon});
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 64, color: AppTheme.onSurfaceVariant),
-          const SizedBox(height: 16),
-          Text(title, style: AppTheme.headlineSmall),
-          const SizedBox(height: 8),
-          Text('Coming soon', style: AppTheme.bodyMedium.copyWith(color: AppTheme.onSurfaceVariant)),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(title)),
+    body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+      Icon(icon, size: 64, color: AppTheme.onSurfaceVariant),
+      const SizedBox(height: 16),
+      Text(title, style: AppTheme.headlineSmall),
+      const SizedBox(height: 8),
+      Text('Coming soon', style: AppTheme.bodyMedium.copyWith(color: AppTheme.onSurfaceVariant)),
+    ])),
+  );
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/pulse_dot.dart';
 import '../../data/api/job_api_service.dart';
 import '../../data/models/job_assignment_model.dart';
 import '../../../hr/data/api/workstation_api_service.dart';
 import '../../../hr/data/models/station_models.dart';
 import 'station_detail_screen.dart';
+import 'station_workers_screen.dart';
 
 class StationListScreen extends StatefulWidget {
   final String supervisorEmpId;
@@ -63,8 +65,9 @@ class _StationListScreenState extends State<StationListScreen> {
                       : Colors.grey.shade200),
                 ),
                 child: Row(children: [
-                  Icon(_totalActive > 0 ? Icons.circle : Icons.circle_outlined,
-                      size: 10, color: _totalActive > 0 ? AppTheme.secondary : Colors.grey.shade400),
+                  _totalActive > 0
+                      ? PulseDot(color: AppTheme.secondary, size: 10)
+                      : Icon(Icons.circle_outlined, size: 10, color: Colors.grey.shade400),
                   const SizedBox(width: 10),
                   Expanded(child: Text(_totalActive > 0
                       ? '$_totalActive active job${_totalActive > 1 ? 's' : ''} across ${_stations.length} stations'
@@ -107,6 +110,9 @@ class _StationListScreenState extends State<StationListScreen> {
                           supervisorEmpId: widget.supervisorEmpId,
                         ),
                       )).then((_) => _load()),
+                      onWorkersTap: () => Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => StationWorkersScreen(station: station),
+                      )),
                     );
                   },
                   childCount: _stations.length,
@@ -123,7 +129,8 @@ class _StationRow extends StatelessWidget {
   final StationModel station;
   final int activeCount;
   final VoidCallback onTap;
-  const _StationRow({required this.station, required this.activeCount, required this.onTap});
+  final VoidCallback onWorkersTap;
+  const _StationRow({required this.station, required this.activeCount, required this.onTap, required this.onWorkersTap});
 
   @override
   Widget build(BuildContext context) {
@@ -194,6 +201,15 @@ class _StationRow extends StatelessWidget {
                     child: Text('Idle',
                         style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.w600)),
                   ),
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: onWorkersTap,
+                  child: Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8)),
+                    child: const Icon(Icons.people_alt_rounded, color: AppTheme.primary, size: 18),
+                  ),
+                ),
                 const SizedBox(width: 6),
                 Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400, size: 20),
               ]),

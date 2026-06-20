@@ -5,6 +5,7 @@ import '../../../../core/utils/api_error_helper.dart';
 import '../../../hr/data/models/shift_models.dart';
 import 'qr_scanner_card.dart';
 import 'attendance_widgets.dart';
+import 'qr_manual_entry.dart';
 
 enum ScanStep { idle, scanning, mapEmployee, scanMachineQr, selectShift }
 
@@ -105,6 +106,9 @@ class _ScanTabState extends State<ScanTab> {
     }
   }
 
+  void _showQrDialog(String title, void Function(String) onSubmit) =>
+      showQrManualEntry(context, title, onSubmit);
+
   void _showSuccess(String msg) => showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -124,8 +128,14 @@ class _ScanTabState extends State<ScanTab> {
           if (_error != null)
             ErrorBanner(message: _error!, onDismiss: () => setState(() { _error = null; _step = ScanStep.idle; })),
 
-          if (_step == ScanStep.idle)
+          if (_step == ScanStep.idle) ...[
             IdleScanPrompt(onScan: () => setState(() => _step = ScanStep.scanning)),
+            TextButton.icon(
+              onPressed: () => _showQrDialog('Enter Employee QR', _onTempQrScanned),
+              icon: const Icon(Icons.keyboard, size: 16),
+              label: const Text('Enter QR manually'),
+            ),
+          ],
 
           if (_step == ScanStep.scanning) ...[
             const StepHeader(step: '1', title: 'Scan Employee Temp QR', subtitle: 'Scan the physical QR card given to the employee'),
@@ -133,6 +143,7 @@ class _ScanTabState extends State<ScanTab> {
             QrScannerCard(onScanned: _onTempQrScanned, expectedPrefix: 'EMP-TEMP'),
             if (_processing) const Padding(padding: EdgeInsets.only(top: 16), child: Center(child: CircularProgressIndicator())),
             const SizedBox(height: 12),
+            TextButton.icon(onPressed: () => _showQrDialog('Enter Employee QR', _onTempQrScanned), icon: const Icon(Icons.keyboard, size: 16), label: const Text('Enter manually')),
             TextButton(onPressed: _reset, child: const Text('Cancel')),
           ],
 
@@ -156,6 +167,7 @@ class _ScanTabState extends State<ScanTab> {
             const SizedBox(height: 12),
             QrScannerCard(onScanned: _onMachineQrScanned, expectedPrefix: 'MACHINE'),
             const SizedBox(height: 12),
+            TextButton.icon(onPressed: () => _showQrDialog('Enter Machine QR', _onMachineQrScanned), icon: const Icon(Icons.keyboard, size: 16), label: const Text('Enter manually')),
             TextButton(onPressed: _reset, child: const Text('Cancel')),
           ],
 

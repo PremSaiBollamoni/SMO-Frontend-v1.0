@@ -146,7 +146,9 @@ class EmployeesView extends StatelessWidget {
                       return EmployeeListItem(
                         employee: emp,
                         isSelected: c.selectedEmployeeIds.contains(emp.empId),
+                        isSelectionMode: c.selectedEmployeeIds.isNotEmpty,
                         onTap: () => onEmployeeTap(emp.empId),
+                        onLongPress: () => c.toggleEmployeeSelection(emp.empId),
                         onCheckboxChanged: () => c.toggleEmployeeSelection(emp.empId),
                         onEdit: () => _editEmployee(context, c, emp.empId),
                         onDelete: () => _deleteEmployee(context, c, emp.empId),

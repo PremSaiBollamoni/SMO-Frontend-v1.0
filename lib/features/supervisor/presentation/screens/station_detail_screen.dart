@@ -6,6 +6,7 @@ import '../../../hr/data/models/station_models.dart';
 import '../widgets/active_job_tile.dart';
 import '../widgets/job_detail_view.dart';
 import '../widgets/qr_scan_section.dart';
+import 'job_detail_screen.dart';
 
 class StationDetailScreen extends StatefulWidget {
   final StationModel station;
@@ -19,6 +20,7 @@ class StationDetailScreen extends StatefulWidget {
 class _StationDetailScreenState extends State<StationDetailScreen> {
   final _jobApi = JobApiService();
   List<ActiveJob> _activeJobs = [];
+  List<ActiveJob> _completedJobs = [];
   ActiveJob? _expandedJob;
   bool _loading = true;
   String? _error;
@@ -32,8 +34,14 @@ class _StationDetailScreenState extends State<StationDetailScreen> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final jobs = await _jobApi.getActiveJobsByStation(widget.station.wsId);
-      if (mounted) setState(() { _activeJobs = jobs; _loading = false; });
+      final active = await _jobApi.getActiveJobsByStation(widget.station.wsId);
+      final all = await _jobApi.getAllJobs();
+      if (mounted) setState(() {
+        _activeJobs = active;
+        _completedJobs = all.where((j) => j.wsId == widget.station.wsId && j.status == 'COMPLETED').toList()
+          ..sort((a, b) => b.endTime?.compareTo(a.endTime ?? DateTime.now()) ?? 0);
+        _loading = false;
+      });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
     }
@@ -48,12 +56,7 @@ class _StationDetailScreenState extends State<StationDetailScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_rounded), onPressed: () => Navigator.pop(context)),
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(widget.station.wsCode, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.3)),
-          Text(widget.station.operation?.opName ?? 'No operation', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.85)), overflow: TextOverflow.ellipsis),
-        ]),
-        centerTitle: false,
-        toolbarHeight: 60,
+        title: Text(widget.station.wsCode),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -146,6 +149,28 @@ class _StationDetailScreenState extends State<StationDetailScreen> {
               itemCount: _activeJobs.length,
               itemBuilder: (_, i) => GestureDetector(onTap: () => setState(() => _expandedJob = _activeJobs[i]), child: ActiveJobTile(job: _activeJobs[i])),
             ),
+
+          if (_completedJobs.isNotEmpty) ...[
+            const SizedBox(height: 28),
+            Row(children: [
+              const Icon(Icons.history_rounded, size: 16, color: Colors.grey),
+              const SizedBox(width: 8),
+              Text('Previous Jobs (${_completedJobs.length})', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.black87)),
+            ]),
+            const SizedBox(height: 12),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _completedJobs.length,
+              itemBuilder: (_, i) {
+                final job = _completedJobs[i];
+                return CompletedJobTile(
+                  job: job,
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobDetailScreen(job: job))),
+                );
+              },
+            ),
+          ],
         ]),
       ),
     );

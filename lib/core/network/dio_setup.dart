@@ -3,6 +3,8 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'dart:developer' as dev;
 import '../config/app_config.dart';
 
+import '../security/secure_storage_helper.dart';
+
 /// Centralized Dio setup and configuration
 class DioSetup {
   static Dio createDio() {
@@ -36,7 +38,17 @@ class DioSetup {
     // Add Custom Detailed Logging Interceptor
     dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
+        onRequest: (options, handler) async {
+          try {
+            final token = await SecureStorageHelper.getJwtToken();
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+              dev.log('[REQUEST] Attached JWT Token to Authorization header', name: 'API_DETAILED');
+            }
+          } catch (e) {
+            dev.log('[REQUEST] Failed to retrieve JWT token: $e', name: 'API_ERROR');
+          }
+
           dev.log(
             '[REQUEST] ${options.method} ${options.path}\n'
             'Base URL: ${options.baseUrl}\n'

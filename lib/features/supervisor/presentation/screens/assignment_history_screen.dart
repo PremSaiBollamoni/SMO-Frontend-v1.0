@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/api/job_api_service.dart';
 import '../../data/models/job_assignment_model.dart';
+import 'job_detail_screen.dart';
 
 class AssignmentHistoryScreen extends StatefulWidget {
   final String supervisorEmpId;
@@ -58,10 +59,7 @@ class _AssignmentHistoryScreenState extends State<AssignmentHistoryScreen> {
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Assignment History', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-          Text('Completed jobs', style: TextStyle(fontSize: 11, color: Colors.white70)),
-        ]),
+        title: const Text('Assignment History'),
       ),
       body: Column(
         children: [
@@ -115,9 +113,12 @@ class _AssignmentHistoryScreenState extends State<AssignmentHistoryScreen> {
                           final job = _filtered[i];
                           final elapsed = job.elapsedSeconds / 60.0;
                           final est = job.estMinutes;
-                          final efficiency = elapsed > 0 ? (est / elapsed * 100).toStringAsFixed(1) : '0';
-                          final isOnTime = elapsed <= est;
-                          return Container(
+                          final effVal = job.efficiencyPct ?? (elapsed > 0 ? (job.samValue * job.bundleQty) / elapsed * 100 : 0.0);
+                          final efficiency = effVal.toStringAsFixed(1);
+                          final isOnTime = effVal >= 100.0;
+                          return GestureDetector(
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => JobDetailScreen(job: job))),
+                          child: Container(
                             margin: const EdgeInsets.only(bottom: 10),
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -162,7 +163,7 @@ class _AssignmentHistoryScreenState extends State<AssignmentHistoryScreen> {
                                 ],
                               ]),
                             ),
-                          );
+                          ));
                         },
                       ),
           ),
