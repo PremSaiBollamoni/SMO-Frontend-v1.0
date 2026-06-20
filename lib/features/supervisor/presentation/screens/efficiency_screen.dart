@@ -3,6 +3,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../data/api/production_api_service.dart';
 import '../../data/models/production_models.dart';
 import 'report_screen.dart';
+import 'worker_slots_screen.dart';
 
 class EfficiencyScreen extends StatefulWidget {
   final String supervisorEmpId;
@@ -149,7 +150,12 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
                           final isTop = rank == 0;
                           final isBottom = rank == sorted.length - 1 && sorted.length > 1;
                           final rankLabel = rank == 0 ? '🥇' : rank == 1 ? '🥈' : rank == 2 ? '🥉' : '#${rank + 1}';
-                          return Container(
+                          return GestureDetector(
+                            onTap: () async {
+                              final worker = await _api.getEmployeeSlots(emp.empId, _selectedDate);
+                              if (mounted) Navigator.push(context, MaterialPageRoute(builder: (_) => WorkerSlotsScreen(worker: worker)));
+                            },
+                            child: Container(
                             margin: const EdgeInsets.only(bottom: 10),
                             padding: const EdgeInsets.all(14),
                             decoration: isTop
@@ -188,9 +194,9 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
                                 child: LinearProgressIndicator(value: bar, backgroundColor: Colors.grey.shade100, valueColor: AlwaysStoppedAnimation(color), minHeight: 5),
                               ),
                               const SizedBox(height: 4),
-                              Text('${emp.productiveSlots} productive slots', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
+                              Text('${emp.productiveSlots} productive slots · tap for details', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
                             ]),
-                          );
+                          ));
                         });
                       }(),
                     ],
