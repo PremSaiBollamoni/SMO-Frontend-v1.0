@@ -24,6 +24,16 @@ class _StationDetailScreenState extends State<StationDetailScreen> {
   ActiveJob? _expandedJob;
   bool _loading = true;
   String? _error;
+  DateTime _selectedDate = DateTime.now();
+
+  bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String get _dateLabel {
+    final now = DateTime.now();
+    if (_isSameDay(_selectedDate, now)) return 'Today';
+    if (_isSameDay(_selectedDate, now.subtract(const Duration(days: 1)))) return 'Yesterday';
+    return '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}';
+  }
 
   @override
   void initState() {
@@ -31,11 +41,29 @@ class _StationDetailScreenState extends State<StationDetailScreen> {
     _load();
   }
 
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2024),
+      lastDate: DateTime.now(),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(colorScheme: const ColorScheme.light(primary: AppTheme.primary)),
+        child: child!,
+      ),
+    );
+    if (picked != null && mounted) {
+      setState(() { _selectedDate = picked; _expandedJob = null; });
+      _load();
+    }
+  }
+
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final active = await _jobApi.getActiveJobsByStation(widget.station.wsId);
-      final all = await _jobApi.getAllJobs();
+      final isToday = _isSameDay(_selectedDate, DateTime.now());
+      final active = isToday ? await _jobApi.getActiveJobsByStation(widget.station.wsId) : <ActiveJob>[];
+      final all = await _jobApi.getJobsByDate(_selectedDate);
       if (mounted) setState(() {
         _activeJobs = active;
         _completedJobs = all.where((j) => j.wsId == widget.station.wsId && j.status == 'COMPLETED').toList()
@@ -57,6 +85,13 @@ class _StationDetailScreenState extends State<StationDetailScreen> {
         elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_rounded), onPressed: () => Navigator.pop(context)),
         title: Text(widget.station.wsCode),
+        actions: [
+          TextButton.icon(
+            onPressed: _pickDate,
+            icon: const Icon(Icons.calendar_today_rounded, size: 15, color: Colors.white70),
+            label: Text(_dateLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
