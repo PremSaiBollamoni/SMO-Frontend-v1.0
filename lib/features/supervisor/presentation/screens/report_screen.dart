@@ -166,7 +166,7 @@ class _ReportScreenState extends State<ReportScreen> {
         primaryYAxis: const NumericAxis(maximum: 150, labelFormat: '{value}%', labelStyle: TextStyle(fontSize: 9)),
         series: [ColumnSeries<EmployeeEfficiency, String>(
           dataSource: _employees,
-          xValueMapper: (e, _) => e.empName.split(' ').first,
+          xValueMapper: (e, _) => e.empName.length > 10 ? e.empName.substring(0, 10) : e.empName,
           yValueMapper: (e, _) => e.efficiencyPct,
           pointColorMapper: (e, _) => _effColor(e.efficiencyPct),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
@@ -190,7 +190,7 @@ class _ReportScreenState extends State<ReportScreen> {
         primaryYAxis: const NumericAxis(labelStyle: TextStyle(fontSize: 9)),
         series: [ColumnSeries<EmployeeEfficiency, String>(
           dataSource: _employees,
-          xValueMapper: (e, _) => e.empName.split(' ').first,
+          xValueMapper: (e, _) => e.empName.length > 10 ? e.empName.substring(0, 10) : e.empName,
           yValueMapper: (e, _) => e.totalPieces,
           color: AppTheme.primary,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
@@ -214,7 +214,7 @@ class _ReportScreenState extends State<ReportScreen> {
         const SizedBox(height: 12),
         const Text('Generate AI Report', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
         const SizedBox(height: 4),
-        const Text('Claude AI will analyze today\'s production\nand generate actionable insights', textAlign: TextAlign.center,
+        const Text('Gemini AI will analyze the selected date\'s production\nand generate actionable insights', textAlign: TextAlign.center,
           style: TextStyle(fontSize: 12, color: Colors.white70)),
         const SizedBox(height: 16),
         _generating
@@ -266,18 +266,32 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Map<String, String> _parseSections(String text) {
+    // Strip markdown: remove **, *, ##, # so Gemini's formatted output is parsed cleanly
+    String clean = text
+        .replaceAll(RegExp(r'\*\*'), '')
+        .replaceAll(RegExp(r'##+ ?'), '')
+        .replaceAll(RegExp(r'\* '), '');
+
     final labels = ['EXECUTIVE SUMMARY', 'TOP PERFORMERS', 'AREAS OF CONCERN', 'OPERATIONAL INSIGHTS', 'RECOMMENDATIONS FOR TOMORROW'];
     final result = <String, String>{};
+    final upper = clean.toUpperCase();
+
     for (int i = 0; i < labels.length; i++) {
       final label = labels[i];
-      final start = text.indexOf('$label:');
-      if (start == -1) continue;
-      final contentStart = start + label.length + 1;
-      final nextLabel = i + 1 < labels.length ? text.indexOf('${labels[i + 1]}:', contentStart) : -1;
-      final content = nextLabel == -1 ? text.substring(contentStart) : text.substring(contentStart, nextLabel);
+      // Match label with or without trailing colon
+      final pattern = RegExp('$label:?', caseSensitive: false);
+      final match = pattern.firstMatch(upper);
+      if (match == null) continue;
+      final contentStart = match.end;
+      final nextMatch = i + 1 < labels.length
+          ? RegExp('${labels[i + 1]}:?', caseSensitive: false).firstMatch(upper.substring(contentStart))
+          : null;
+      final content = nextMatch == null
+          ? clean.substring(contentStart)
+          : clean.substring(contentStart, contentStart + nextMatch.start);
       result[label] = content.trim();
     }
-    if (result.isEmpty) result['ANALYSIS'] = text;
+    if (result.isEmpty) result['AI INSIGHTS'] = clean.trim();
     return result;
   }
 }
