@@ -40,6 +40,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
   final _dio = ApiClient().dio;
   DateTime _selectedDate = DateTime.now();
   List<_AttRecord> _records = [];
+  int _totalEmployees = 0;
   bool _loading = true;
   String? _error;
   String _filter = 'ALL';
@@ -54,9 +55,13 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
     setState(() { _loading = true; _error = null; });
     try {
       final d = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
-      final res = await _dio.get('/api/attendance/date', queryParameters: {'date': d});
-      final list = (res.data as List).map((j) => _AttRecord.fromJson(j)).toList();
-      if (mounted) setState(() { _records = list; _loading = false; });
+      final results = await Future.wait([
+        _dio.get('/api/attendance/date', queryParameters: {'date': d}),
+        _dio.get('/api/hr/employees'),
+      ]);
+      final records = (results[0].data as List).map((j) => _AttRecord.fromJson(j)).toList();
+      final totalEmp = (results[1].data as List).length;
+      if (mounted) setState(() { _records = records; _totalEmployees = totalEmp; _loading = false; });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
     }
@@ -115,7 +120,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
   @override
   Widget build(BuildContext context) {
     final present = _records.where((r) => r.status == 'CHECKED_IN' || r.status == 'CHECKED_OUT').length;
-    final absent = _records.where((r) => r.status == 'ABSENT').length;
+    final absent = _totalEmployees - present;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -149,7 +154,7 @@ class _AttendanceReportScreenState extends State<AttendanceReportScreen> {
     color: AppTheme.primary,
     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
     child: Row(children: [
-      _summaryTile('Total', _records.length.toString(), Colors.white),
+      _summaryTile('Total', _totalEmployees.toString(), Colors.white),
       const SizedBox(width: 12),
       _summaryTile('Present', present.toString(), Colors.greenAccent),
       const SizedBox(width: 12),

@@ -181,7 +181,7 @@ class _HrDashboardScreenState extends State<HrDashboardScreen> {
     if (_has('HR_ATTENDANCE_REPORT')) {
       management.add(FeatureCard(
         icon: Icons.fact_check_outlined, label: 'Attendance Reports',
-        screen: const AttendanceReportScreen(), color: const Color(0xFF7B61FF),
+        screen: const AttendanceReportScreen(), color: const Color(0xFF7B61FF), hasOwnScaffold: true,
       ));
     }
     if (_has('HR_MANAGE_EMPLOYEES')) {

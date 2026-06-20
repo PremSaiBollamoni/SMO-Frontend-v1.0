@@ -24,14 +24,41 @@ class _ReportScreenState extends State<ReportScreen> {
   bool _loading = true;
   bool _generating = false;
   String? _error;
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() { super.initState(); _load(); }
 
+  bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String get _dateLabel {
+    final now = DateTime.now();
+    if (_isSameDay(_selectedDate, now)) return 'Today';
+    if (_isSameDay(_selectedDate, now.subtract(const Duration(days: 1)))) return 'Yesterday';
+    return '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}';
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2024),
+      lastDate: DateTime.now(),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(colorScheme: const ColorScheme.light(primary: AppTheme.primary)),
+        child: child!,
+      ),
+    );
+    if (picked != null && mounted) {
+      setState(() { _selectedDate = picked; _report = null; });
+      _load();
+    }
+  }
+
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final emps = await _prodApi.getEfficiencyToday();
+      final emps = await _prodApi.getEfficiencyByDate(_selectedDate);
       if (mounted) setState(() { _employees = emps; _loading = false; });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
@@ -41,7 +68,7 @@ class _ReportScreenState extends State<ReportScreen> {
   Future<void> _generate() async {
     setState(() { _generating = true; _error = null; });
     try {
-      final result = await _reportApi.generateReport();
+      final result = await _reportApi.generateReport(_selectedDate);
       if (mounted) setState(() { _report = result; _generating = false; });
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _generating = false; });
@@ -68,25 +95,33 @@ class _ReportScreenState extends State<ReportScreen> {
         elevation: 0,
         title: const Text('AI Report'),
         actions: [
+          TextButton.icon(
+            onPressed: _pickDate,
+            icon: const Icon(Icons.calendar_today_rounded, size: 16, color: Colors.white70),
+            label: Text(_dateLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+          ),
           if (_report != null)
             IconButton(icon: const Icon(Icons.download_rounded), tooltip: 'Download PDF', onPressed: _downloadPdf),
+          IconButton(icon: const Icon(Icons.refresh_rounded), onPressed: _load),
         ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? _errorView()
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    _efficiencyChart(),
-                    const SizedBox(height: 16),
-                    _piecesChart(),
-                    const SizedBox(height: 20),
-                    if (_report == null) _generateButton() else _insightsCard(),
-                    const SizedBox(height: 80),
-                  ]),
-                ),
+              : _employees.isEmpty
+                  ? _noDataView()
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        _efficiencyChart(),
+                        const SizedBox(height: 16),
+                        _piecesChart(),
+                        const SizedBox(height: 20),
+                        if (_report == null) _generateButton() else _insightsCard(),
+                        const SizedBox(height: 80),
+                      ]),
+                    ),
       floatingActionButton: _report != null
           ? FloatingActionButton.extended(
               backgroundColor: AppTheme.primary,
@@ -98,6 +133,14 @@ class _ReportScreenState extends State<ReportScreen> {
           : null,
     );
   }
+
+  Widget _noDataView() => Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+    Icon(Icons.bar_chart_rounded, size: 64, color: Colors.grey.shade300),
+    const SizedBox(height: 12),
+    Text('No production data for $_dateLabel', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.grey.shade500)),
+    const SizedBox(height: 8),
+    Text('Select a different date', style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
+  ]));
 
   Widget _errorView() => Center(child: Padding(
     padding: const EdgeInsets.all(24),
