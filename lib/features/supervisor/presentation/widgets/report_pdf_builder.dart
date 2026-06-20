@@ -14,7 +14,7 @@ Future<Uint8List> buildReportPdf(List<EmployeeEfficiency> employees, ReportResul
     pageFormat: PdfPageFormat.a4,
     margin: const pw.EdgeInsets.all(32),
     header: (_) => _header(report),
-    footer: (_) => pw.Text('PALMS — Production & Labour Management System',
+    footer: (_) => pw.Text('PALMS - Production & Labour Management System',
         style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey)),
     build: (ctx) => [
       pw.SizedBox(height: 16),
@@ -32,7 +32,7 @@ Future<Uint8List> buildReportPdf(List<EmployeeEfficiency> employees, ReportResul
       pw.SizedBox(height: 8),
       _table(sorted),
       pw.SizedBox(height: 24),
-      _sectionTitle('AI Insights — Gemini Analysis'),
+      _sectionTitle('AI Insights - Gemini Analysis'),
       pw.SizedBox(height: 8),
       _insightsSection(sections),
     ],
@@ -44,7 +44,9 @@ Map<String, String> _parseSections(String text) {
   String clean = text
       .replaceAll(RegExp(r'\*\*'), '')
       .replaceAll(RegExp(r'##+ ?'), '')
-      .replaceAll(RegExp(r'\* '), '');
+      .replaceAll(RegExp(r'\* '), '')
+      .replaceAll('—', '-')
+      .replaceAll('–', '-');
 
   final labels = ['EXECUTIVE SUMMARY', 'TOP PERFORMERS', 'AREAS OF CONCERN', 'OPERATIONAL INSIGHTS', 'RECOMMENDATIONS FOR TOMORROW'];
   final result = <String, String>{};
@@ -76,7 +78,7 @@ pw.Widget _header(ReportResult r) => pw.Container(
   child: pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
     pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
       pw.Text('Production Efficiency Report', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo700)),
-      pw.Text('PALMS — Garment Factory Management', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+      pw.Text('PALMS - Garment Factory Management', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
     ]),
     pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
       pw.Text(r.generatedAt, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
