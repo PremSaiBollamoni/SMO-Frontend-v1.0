@@ -8,6 +8,7 @@ Future<Uint8List> buildReportPdf(List<EmployeeEfficiency> employees, ReportResul
   final pdf = pw.Document();
   final sorted = [...employees]..sort((a, b) => b.efficiencyPct.compareTo(a.efficiencyPct));
   final maxPieces = employees.isEmpty ? 1 : employees.map((e) => e.totalPieces).reduce((a, b) => a > b ? a : b);
+  final sections = _parseSections(report.insights);
 
   pdf.addPage(pw.MultiPage(
     pageFormat: PdfPageFormat.a4,
@@ -23,7 +24,7 @@ Future<Uint8List> buildReportPdf(List<EmployeeEfficiency> employees, ReportResul
       pw.SizedBox(height: 10),
       _barChart(sorted, (e) => e.efficiencyPct, 150, (e) => _effPdfColor(e.efficiencyPct), (e) => '${e.efficiencyPct.toStringAsFixed(0)}%'),
       pw.SizedBox(height: 20),
-      _sectionTitle('Pieces Produced Today'),
+      _sectionTitle('Pieces Produced'),
       pw.SizedBox(height: 10),
       _barChart(sorted, (e) => e.totalPieces.toDouble(), maxPieces.toDouble(), (_) => PdfColors.indigo400, (e) => '${e.totalPieces}'),
       pw.SizedBox(height: 20),
@@ -31,12 +32,40 @@ Future<Uint8List> buildReportPdf(List<EmployeeEfficiency> employees, ReportResul
       pw.SizedBox(height: 8),
       _table(sorted),
       pw.SizedBox(height: 24),
-      _sectionTitle('AI Insights — Claude Analysis'),
+      _sectionTitle('AI Insights — Gemini Analysis'),
       pw.SizedBox(height: 8),
-      _insightsSection(report.insights),
+      _insightsSection(sections),
     ],
   ));
   return pdf.save();
+}
+
+Map<String, String> _parseSections(String text) {
+  String clean = text
+      .replaceAll(RegExp(r'\*\*'), '')
+      .replaceAll(RegExp(r'##+ ?'), '')
+      .replaceAll(RegExp(r'\* '), '');
+
+  final labels = ['EXECUTIVE SUMMARY', 'TOP PERFORMERS', 'AREAS OF CONCERN', 'OPERATIONAL INSIGHTS', 'RECOMMENDATIONS FOR TOMORROW'];
+  final result = <String, String>{};
+  final upper = clean.toUpperCase();
+
+  for (int i = 0; i < labels.length; i++) {
+    final label = labels[i];
+    final pattern = RegExp('$label:?', caseSensitive: false);
+    final match = pattern.firstMatch(upper);
+    if (match == null) continue;
+    final contentStart = match.end;
+    final nextMatch = i + 1 < labels.length
+        ? RegExp('${labels[i + 1]}:?', caseSensitive: false).firstMatch(upper.substring(contentStart))
+        : null;
+    final content = nextMatch == null
+        ? clean.substring(contentStart)
+        : clean.substring(contentStart, contentStart + nextMatch.start);
+    result[label] = content.trim();
+  }
+  if (result.isEmpty) result['AI INSIGHTS'] = clean.trim();
+  return result;
 }
 
 PdfColor _effPdfColor(double e) => e >= 100 ? PdfColors.green700 : e >= 80 ? PdfColors.orange700 : PdfColors.red600;
@@ -51,7 +80,7 @@ pw.Widget _header(ReportResult r) => pw.Container(
     ]),
     pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
       pw.Text(r.generatedAt, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
-      pw.Text('AI-Generated · claude-haiku-4-5', style: pw.TextStyle(fontSize: 9, color: PdfColors.indigo400, fontStyle: pw.FontStyle.italic)),
+      pw.Text('AI-Generated · gemini-3-flash-preview', style: pw.TextStyle(fontSize: 9, color: PdfColors.indigo400, fontStyle: pw.FontStyle.italic)),
     ]),
   ]),
 );
@@ -78,6 +107,13 @@ pw.Widget _statBox(String label, String value, PdfColor color) => pw.Expanded(ch
 pw.Widget _sectionTitle(String t) => pw.Text(t,
   style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo800));
 
+String _shortName(String name) {
+  final parts = name.trim().split(' ');
+  if (parts.length == 1) return name;
+  // First name + first letter of last name
+  return '${parts.first} ${parts.last[0]}.';
+}
+
 pw.Widget _barChart(
   List<EmployeeEfficiency> sorted,
   double Function(EmployeeEfficiency) getValue,
@@ -92,7 +128,7 @@ pw.Widget _barChart(
       final ratio = maxVal > 0 ? (getValue(emp) / maxVal).clamp(0.0, 1.0) : 0.0;
       final barH = ratio * chartH;
       final color = getColor(emp);
-      final name = emp.empName.split(' ').first;
+      final name = _shortName(emp.empName);
       return pw.Expanded(child: pw.Column(
         mainAxisAlignment: pw.MainAxisAlignment.end,
         children: [
@@ -101,7 +137,7 @@ pw.Widget _barChart(
           pw.Container(height: barH == 0 ? 2 : barH, margin: const pw.EdgeInsets.symmetric(horizontal: 2),
             decoration: pw.BoxDecoration(color: color, borderRadius: pw.BorderRadius.circular(2))),
           pw.SizedBox(height: 4),
-          pw.Text(name, style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700), textAlign: pw.TextAlign.center),
+          pw.Text(name, style: const pw.TextStyle(fontSize: 6.5, color: PdfColors.grey700), textAlign: pw.TextAlign.center),
         ],
       ));
     }).toList(),
@@ -140,17 +176,30 @@ pw.Widget _table(List<EmployeeEfficiency> sorted) {
   );
 }
 
-pw.Widget _insightsSection(String insights) => pw.Container(
-  padding: const pw.EdgeInsets.all(14),
-  decoration: pw.BoxDecoration(
-    color: PdfColors.indigo50,
-    borderRadius: pw.BorderRadius.circular(6),
-    border: pw.Border.all(color: PdfColors.indigo200),
-  ),
-  child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-    pw.Text('Powered by Claude AI (claude-haiku-4-5)',
-      style: pw.TextStyle(fontSize: 8, color: PdfColors.indigo600, fontStyle: pw.FontStyle.italic)),
-    pw.SizedBox(height: 8),
-    pw.Text(insights, style: const pw.TextStyle(fontSize: 9.5, color: PdfColors.grey800)),
-  ]),
+pw.Widget _insightsSection(Map<String, String> sections) => pw.Column(
+  crossAxisAlignment: pw.CrossAxisAlignment.start,
+  children: [
+    pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: pw.BoxDecoration(color: PdfColors.indigo100, borderRadius: pw.BorderRadius.circular(4)),
+      child: pw.Text('Powered by Gemini AI (gemini-3-flash-preview)',
+        style: pw.TextStyle(fontSize: 8, color: PdfColors.indigo700, fontStyle: pw.FontStyle.italic)),
+    ),
+    pw.SizedBox(height: 10),
+    ...sections.entries.map((e) => pw.Container(
+      width: double.infinity,
+      margin: const pw.EdgeInsets.only(bottom: 10),
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.indigo50,
+        borderRadius: pw.BorderRadius.circular(6),
+        border: pw.Border.all(color: PdfColors.indigo200),
+      ),
+      child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+        pw.Text(e.key, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo800)),
+        pw.SizedBox(height: 5),
+        pw.Text(e.value, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800)),
+      ]),
+    )),
+  ],
 );
